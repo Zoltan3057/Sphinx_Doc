@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>[深蓝学院] 视觉SLAM &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="[深蓝学院] 激光SLAM理论与实践" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html" />
+    <link rel="prev" title="Welcome to Mario’s documentation!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">[深蓝学院] 视觉SLAM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">1. 预备知识</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">2. 初识SLAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3. 三维空间的刚体运动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">4. 李群与李代数</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">4.1 李群和李代数的基础</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">4.2 指数与对数映射</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">4.3 李代数求导与扰动模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bch">4.3.1 BCH公式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#so-3">4.3.2 SO(3)李代数上的求导</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">5. 相机与图像</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">5.1.1 相机模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5.1.2 畸变</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">5.1.3 双目相机模型</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">6. 非线性优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id13">6.1 高斯牛顿法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">6.1.1 核函数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lm">6.2 LM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dog-leg">6.3 Dog-Leg算法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ceres">6.4 ceres</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#g2o">6.5 g2o</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id15">7. 特征点提取</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#orb">7.1 ORB特征点</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sift">7.2 SIFT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#surf">7.3 SURF</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id16">8. 特征点法视觉里程计</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id17">8.2 对极几何</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fundamental-matrix">8.2.1 Fundamental Matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">8.2.1.1 对极方程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">8.2.1.2 8点法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#er-t">8.2.1.3 由E分解R,t</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#homography-matrix">8.2.2 homography Matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pnp">8.3 PnP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#icp">8.4 ICP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20">8.4.1 线性代数求解</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21">8.4.2 非线性优化求解</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22">8.5 三角化与深度估计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23">8.5.1 叉乘消元求解深度</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#d">8.5.2 叉乘求解3D坐标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cramers-p336">8.5.3 Cramer’s解 P336</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mid-point-method">8.5.3 公垂线的中点 Mid Point Method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bundle-adjustment">8.6 Bundle Adjustment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24">8.7. 光流法与直接法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25">8.7.1 光流法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id26">8.7.2 直接法</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id27">10. 后端</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id28">10.1 递归方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ba">10.2 BA与图优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id29">10.2.2 边缘化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id30">10.2.3 零空间</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pose-graph">10.3 Pose Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id31">10.3.1 图优化雅克比的推导</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32">10.4 因子图</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id33">12. 回环检测</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id34">12.1 基本概念</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id35">12.2 词袋模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kmeans">12.2.1 kmeans++</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#k">12.2.3 语法树，k叉树</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id36">12.2.4 相似度计算</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id37">13. 建图</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id38">13.1 极限搜索与块匹配</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id39">13.2 高斯分布的深度滤波器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id40">13.2.1 高斯分布的深度滤波器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id42">13.2.2 均匀-高斯混合分布</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id43">13.3 逆深度</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#id44">[深蓝学院] 视觉SLAM作业</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id45">1. 概述与预备知识</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id46">2. 三维空间的刚体运动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id52">3. 李群与李代数</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id54">3.2 群的性质</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id55">3.3 验证向量叉乘的李代数性质</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#se-3">3.4 推导 SE(3) 的指数映射</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id56">3.5 伴随</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id58">4. 相机模型与非线性优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id59">5. 特征点法视觉里程计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id61">6. 光流法与直接法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id64">7. 后端优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id65">8. 回环检测</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id67">9. 大作业</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSO.html">DSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>[深蓝学院] 视觉SLAM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_VSLAM/TUTORIAL_Visual_SLAM.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slam">
+<h1>[深蓝学院] 视觉SLAM<a class="headerlink" href="#slam" title="Permalink to this headline"></a></h1>
+<p>Mario 2022-02-28</p>
+<div class="section" id="id1">
+<h2>1. 预备知识<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<div class="math notranslate nohighlight">
+\[\begin{split}a*b=|a||b|cos(\theta) \\
+a \times b = |a||b|sin(\theta)\\\end{split}\]</div>
+<p>叉乘是面积，点乘是投影</p>
+</div>
+<div class="section" id="id2">
+<h2>2. 初识SLAM<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id3">
+<h2>3. 三维空间的刚体运动<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
+<p>旋转矩阵，正交矩阵 <span class="math notranslate nohighlight">\(AA^T=E\)</span>，行列式为1。</p>
+</div>
+<div class="section" id="id4">
+<h2>4. 李群与李代数<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
+<div class="section" id="id5">
+<h3>4.1 李群和李代数的基础<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h3>
+<p>凤姐咬你</p>
+<p>光滑的群就是李群</p>
+</div>
+<div class="section" id="id6">
+<h3>4.2 指数与对数映射<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h3>
+<p>李代数的引出</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;R(t)R(t)^T=I\\
+&amp;\dot{R(t)}R(t)^T+R(t)\dot{R(t)^T}=0\\
+&amp;\dot{R(t)}R(t)^T=-(\dot{R(t)}R(t)^T)^T\\
+&amp;\dot{R(t)}R(t)^T=\phi(t)^{\times}\\
+&amp;\dot{R(t)}=\phi(t)^{\times}R(t)\\
+&amp;零点处泰勒展开: R(t)\approx R(t_0)+\dot{R(t)}(t-t_0)=I+\phi_0^{\times}t\\
+&amp;关于t积分: R(t)=exp(\phi_0^{\times}t)，R=exp(\phi_0^{\times})\\
+&amp;\phi=ln(R)^{\vee}=cos^{-1}(\frac{tr(R)-1}{2})+2\pi m\end{split}\]</div>
+<p>李群和李代数的关系，SO3李群与so3李代数可以相互转换，李代数<strong>指数映射</strong>就得到了李群[反方向为对数映射]，指数映射也是罗德里格斯公式<strong>（公式4.22），李代数反应了李群的</strong>导数性质<strong>，李群在原点附近的</strong>正切空间上。李代数到李群是一个满射。</p>
+<p>类似的在SE3上</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;exp(\xi^{\times})=\begin{bmatrix}exp(\phi^{\times})&amp;J\rho\\0&amp;1\end{bmatrix}=T\\
+&amp;\xi=\begin{bmatrix}\rho\\\phi\end{bmatrix}\\
+&amp;\xi^{\times}=\begin{bmatrix}\phi^{\times}&amp;\rho\\0&amp;0\end{bmatrix}\end{split}\]</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Eigen::Matrix3d R=Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d(0,0,1)).toRotationMatrix();
+Sophus::SO3 SO3_R(R)
+Sophus::SO3::hat // 反对称矩阵
+Sophus::SO3::vee // 反对称的逆
+Eigen::Vector3d so3=SO3_R.log(); //李群到李代数
+Sophus::SO3 SO3_R2=Sophus::SO3::exp(so3) // 李代数到李群
+//扰动
+Eigen::Vector3d so3（1e-4,0,0);
+SO3_updated=Sophus::SO3::exp(update_so3)*SO3_R;// 左乘更新
+</pre></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h3>4.3 李代数求导与扰动模型<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="bch">
+<h3>4.3.1 BCH公式<a class="headerlink" href="#bch" title="Permalink to this headline"></a></h3>
+<p>两个R相乘，在李代数上面对应一个加法。</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\phi_{R_1R_2}=ln(R_1R_2)^{\vee}=ln(exp(\phi_1^{\times})exp(\phi_2^{\times}))^{\vee}\\
+&amp;=\left\{
+\begin{array}{lr}
+J_l(\phi_2)^{-1}\phi_1+\phi_2,&amp;\phi_1小量 \\
+\phi_1+J_r(\phi_1)^{-1}\phi_2,&amp;\phi_2小量
+\end{array}
+\right.\end{split}\]</div>
+<p>在李群上面左乘小扰动时对应的李代数变换：</p>
+<div class="math notranslate nohighlight">
+\[exp(\Delta \phi^{\times})exp(\phi^{\times})=exp((\phi+J_l^{-1}(\phi)\Delta \phi)^{\times})\]</div>
+<p>在李代数上面加上小扰动在李群上面的变换</p>
+<div class="math notranslate nohighlight">
+\[exp((\phi+\Delta \phi)^{\times})=exp((J_l\Delta \phi)^{\times})exp(\phi^{\times})=exp(\phi^{\times})exp((J_r\Delta \phi)^{\times})\]</div>
+<p>在特殊欧式群上存在类似公式(4.35)</p>
+</div>
+<div class="section" id="so-3">
+<h3>4.3.2 SO(3)李代数上的求导<a class="headerlink" href="#so-3" title="Permalink to this headline"></a></h3>
+<ul>
+<li><p class="first">李代数求导(略)</p>
+</li>
+<li><p class="first">扰动模型</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;exp(\varphi^{\times})=\Delta R\\
+&amp;\frac{\partial (Rp)}{\partial \varphi}=\lim_{\varphi \to 0}\frac{exp(\varphi^{\times})exp(\phi^{\times})p-exp(\phi^{\times})p}{\varphi}\\
+&amp;\approx =\frac{(I+\varphi^{\times})exp(\phi^{\times})p-exp(\phi^{\times})p}{\varphi}\\
+&amp;=\frac{\varphi^{\times}exp(\phi^{\times})p}{\varphi}\\
+&amp;=-(Rp)^{\times}\end{split}\]</div>
+<p>同理，在SE3上，导数是一个4*6的矩阵</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\frac{\partial (Tp)}{\partial \delta \xi}=\begin{bmatrix}I &amp; -(Rp+t)^{\times}\\0&amp;0^T\end{bmatrix}=(Tp)^{\odot}\end{split}\]</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>5. 相机与图像<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h2>
+<div class="section" id="id9">
+<h3>5.1.1 相机模型<a class="headerlink" href="#id9" title="Permalink to this headline"></a></h3>
+<p>世界坐标系，相机坐标系，归一化平面坐标系，像素坐标系</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\begin{bmatrix}u\\v\\1\end{bmatrix}=\begin{bmatrix}f_x &amp; 0 &amp; c_x \\ 0 &amp; f_y &amp; c_y \\ 0 &amp; 0 &amp; 1\end{bmatrix}\frac{1}{z}\begin{bmatrix}x\\y\\z\end{bmatrix}\end{split}\]</div>
+<p>当知道点云的z的时候[深度相机的时候]，可以将u,v投影到3D坐标点</p>
+</div>
+<div class="section" id="id10">
+<h3>5.1.2 畸变<a class="headerlink" href="#id10" title="Permalink to this headline"></a></h3>
+<p>在归一化平面坐标系到像素坐标系之间，还可以加上畸变矫正</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;r^2=x^2+y^2\\
+&amp;\left\{
+\begin{array}{lr}
+x_{distorted}=x(1+k_1r^2+k_2r^4+k_3r^6)+2p_1xy+p_2(r^2+2x^2)\\
+y_{distorted}=y(1+k_1r^2+k_2r^4+k_3r^6)+p_1(r^2+2y^2)+2p_2xy
+\end{array}
+\right.\end{split}\]</div>
+</div>
+<div class="section" id="id11">
+<h3>5.1.3 双目相机模型<a class="headerlink" href="#id11" title="Permalink to this headline"></a></h3>
+<p>双目模型，d为视差，描述同一个点在左右目上成像的距离，f为焦距，b为基线长度。</p>
+<div class="math notranslate nohighlight">
+\[z = \frac{fb}{d}\]</div>
+</div>
+</div>
+<div class="section" id="id12">
+<h2>6. 非线性优化<a class="headerlink" href="#id12" title="Permalink to this headline"></a></h2>
+<p>Line Search: 先固定搜索方向，然后在该方向寻找步长</p>
+<p>Trust Region: 先固定搜索步长，然后确定搜索方向</p>
+<div class="section" id="id13">
+<h3>6.1 高斯牛顿法<a class="headerlink" href="#id13" title="Permalink to this headline"></a></h3>
+<p>近似求Hessian矩阵</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;f(x+\Delta x)=f(x)+J(x)\Delta x\\
+&amp;平方: error=\frac{1}{2}[f(x)+J(x)\Delta x]^T[f(x)+J(x)\Delta x]\\
+&amp;=\frac{1}{2}[||f(x)||^2+2f(x)^TJ(x)\Delta x+\Delta x^TJ(x)^TJ(x)\Delta x]\\
+&amp;对\Delta x求导: J(x)^TJ(x)\Delta x = -J(x)^Tf(x) \\
+&amp;H\Delta x = g\end{split}\]</div>
+<ul class="simple">
+<li>给定初始值<span class="math notranslate nohighlight">\(x_0\)</span></li>
+<li>对于第k次迭代，计算<span class="math notranslate nohighlight">\(J(x_k),f(x_k)\)</span></li>
+<li>求增量方程</li>
+<li>当<span class="math notranslate nohighlight">\(\Delta x\)</span>较小的时候，停止，否则，<span class="math notranslate nohighlight">\(x_{k+1}=x_k+\Delta x_k\)</span></li>
+</ul>
+</div>
+<div class="section" id="id14">
+<h3>6.1.1 核函数<a class="headerlink" href="#id14" title="Permalink to this headline"></a></h3>
+<p>平方误差上升的过快，用核函数来约束，Huber核函数，Cauchy，Tukey</p>
+</div>
+<div class="section" id="lm">
+<h3>6.2 LM<a class="headerlink" href="#lm" title="Permalink to this headline"></a></h3>
+<p>LM法: 高斯牛顿有的时候步长过大，LM限制每次的前进步长。</p>
+<div class="math notranslate nohighlight">
+\[\rho=\frac{f(x+\Delta x)-f(x)}{J(x)\Delta x}\]</div>
+<p>当<span class="math notranslate nohighlight">\(\rho\)</span>接近于1，说明近似较好。当<span class="math notranslate nohighlight">\(\rho\)</span>小的时候，缩小步长。当<span class="math notranslate nohighlight">\(\rho\)</span>大的时候，增加步长。</p>
+<div class="math notranslate nohighlight">
+\[(H+\lambda I)\Delta x=g\]</div>
+<p>等价于高斯牛顿与最速下降的综合。<span class="math notranslate nohighlight">\(\lambda\)</span>是拉格朗日乘子。<span class="math notranslate nohighlight">\(\lambda\)</span>越大，相当于最速，<span class="math notranslate nohighlight">\(\lambda\)</span>越小，相当于高斯牛顿。</p>
+</div>
+<div class="section" id="dog-leg">
+<h3>6.3 Dog-Leg算法<a class="headerlink" href="#dog-leg" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="ceres">
+<h3>6.4 ceres<a class="headerlink" href="#ceres" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="g2o">
+<h3>6.5 g2o<a class="headerlink" href="#g2o" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+<div class="section" id="id15">
+<h2>7. 特征点提取<a class="headerlink" href="#id15" title="Permalink to this headline"></a></h2>
+<div class="section" id="orb">
+<h3>7.1 ORB特征点<a class="headerlink" href="#orb" title="Permalink to this headline"></a></h3>
+<blockquote>
+<div>SIFT(300ms), SURF(300ms),A-KAZE(100ms)，BRIEF,LDB</div></blockquote>
+<ul>
+<li><p class="first">构造图像金字塔</p>
+</li>
+<li><p class="first">提取FAST角点</p>
+<p>画圆，FAST-12则连续12个像素点的亮度与圆心相差超过阈值，则为角点。每一层按照图片大小确定提取角点的数量。</p>
+<p>极大值抑制:</p>
+<p>Harris响应:</p>
+</li>
+<li><p class="first">利用灰度质心法，计算旋转角度</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;c_x = \frac{\sum(xI_{x,y})}{\sum(I_{x,y})} \\
+&amp;c_y = \frac{\sum(yI_{x,y})}{\sum(I_{x,y})} \\
+&amp;\theta = arctan(\frac{c_y}{c_x})\end{split}\]</div>
+</li>
+<li><p class="first">计算旋转后的BRIEF描述子</p>
+<p>二进制描述子，以关键点为中心，选择31*31的块，按照一定方式选择N对点，比较没对点的大小(可以用5x5patch的灰度值)，保存为256位的二进制数。匹配的时候就看描述子的位数相差多少位。</p>
+</li>
+</ul>
+</div>
+<div class="section" id="sift">
+<h3>7.2 SIFT<a class="headerlink" href="#sift" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="surf">
+<h3>7.3 SURF<a class="headerlink" href="#surf" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+<div class="section" id="id16">
+<h2>8. 特征点法视觉里程计<a class="headerlink" href="#id16" title="Permalink to this headline"></a></h2>
+<div class="section" id="id17">
+<h3>8.2 对极几何<a class="headerlink" href="#id17" title="Permalink to this headline"></a></h3>
+<p>一个相机平面上的点在另一个相机平面上的点是一条直线。求解了R,t</p>
+</div>
+<div class="section" id="fundamental-matrix">
+<h3>8.2.1 Fundamental Matrix<a class="headerlink" href="#fundamental-matrix" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id18">
+<h3>8.2.1.1 对极方程<a class="headerlink" href="#id18" title="Permalink to this headline"></a></h3>
+<p>在多视图几何的第9章，视觉14讲的简单推导</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;p_1 = KP, p_2 = K(RP+t) \\
+&amp;x_1 = K^{-1}p_1, x_2 = K^{-1}p_2 \\
+&amp;x_2 = Rx_1+t \\
+&amp;x_2^TtRx_1 = 0 (t反对称)\end{split}\]</div>
+<p>吴博课程里面的推导，三角形，两边的叉乘垂直于第三条边
+<img alt="image2" src="../_images/181.png" /></p>
+<p>world坐标系对应点为<span class="math notranslate nohighlight">\(x,x'\)</span>，两个坐标系变换为<span class="math notranslate nohighlight">\(R,t\)</span>，<span class="math notranslate nohighlight">\(ox \times oo'\)</span>垂直于<span class="math notranslate nohighlight">\(ox'\)</span></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;x'=R(x-t)\\
+&amp;(x-t)^T(t \times x)=0\\
+&amp;x'^TR([t]_{\times}x)=0\\
+&amp;x'^T(R[t]_{\times})x=0\\
+&amp;x'^TEx=0\end{split}\]</div>
+<p>转到像素平面坐标系下</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;Ku=sx,Ku'=s'x'\\
+&amp;u'^TFu=0\end{split}\]</div>
+</div>
+<div class="section" id="id19">
+<h3>8.2.1.2 8点法<a class="headerlink" href="#id19" title="Permalink to this headline"></a></h3>
+<p>正常是6个自由度，由于E的尺度等价，所以是5个自由度。求解时为了简单，只考虑简单的尺度等价约束，所以用8点法。<span class="math notranslate nohighlight">\(Af=0\)</span>，则<span class="math notranslate nohighlight">\(F\)</span>对应的就是<span class="math notranslate nohighlight">\(A^TA\)</span>最小特征值对应的特征向量。加入内参K，得到<span class="math notranslate nohighlight">\(E\)</span>。</p>
+<p>MVG P282页:
+<img alt="image1" src="../_images/211.png" /></p>
+</div>
+<div class="section" id="er-t">
+<h3>8.2.1.3 由E分解R,t<a class="headerlink" href="#er-t" title="Permalink to this headline"></a></h3>
+<p>由于对极方程等于0，<span class="math notranslate nohighlight">\(E=R[t]_{\times}\)</span>，对于-R,-t都成立，22正负组合共4组。只有两个地图点在相机前方的是正解。</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">E的SVD分解与R,t的求解</p>
+</div>
+<p>代码中有将奇异值分解的w的第三个奇异值强制置为零</p>
+<p>视差角大的两个匹配点求得的R,t更为准确。</p>
+</div>
+<div class="section" id="homography-matrix">
+<h3>8.2.2 homography Matrix<a class="headerlink" href="#homography-matrix" title="Permalink to this headline"></a></h3>
+<p>处于共同平面上的一些点在两张图像之间的变换关系，例如，相机平面1通过平面<span class="math notranslate nohighlight">\(\pi\)</span>转移到相机平面2，则满足<span class="math notranslate nohighlight">\(p_2=Hp_1\)</span>。</p>
+<p>纯旋转的时候，R就是H。此时用单映矩阵求出来的R比较准确。</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\vec{n}=(a,b,c)^T\\
+&amp;d=\vec{n}*\vec{x}=n^Tx=ax+by+cz\\
+&amp;x'=Rx+t\\
+&amp;x'=Rx+t*\frac{1}{d}n^Tx=Hx\end{split}\]</div>
+<p>当特征点共面或者纯旋转的时候，基础矩阵的自由度下降[退化，Regression]，基础矩阵多出来的自由度就由噪声所决定，而单映矩阵通过增加了约束，效果会好一些。另一种解释，随机取一个向量n，根据下面推导，E就有无穷多个：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;(n \times x')^Tx'=0\\
+&amp;(n \times x')^THx=0\\
+&amp;x'^T[n]_{\times}^THx=0\end{split}\]</div>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">这边x是归一化坐标系</p>
+</div>
+<div class="admonition-todo admonition" id="index-2">
+<p class="first admonition-title">Todo</p>
+<p class="last">H的求解与分解，推导讲道理有点长</p>
+</div>
+<p>MVG P91页:
+<img alt="image3" src="../_images/201.png" /></p>
+</div>
+<div class="section" id="pnp">
+<h3>8.3 PnP<a class="headerlink" href="#pnp" title="Permalink to this headline"></a></h3>
+<p>2d-3d，得知世界坐标系下点的坐标与归一化坐标系下的点，则:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;s\begin{bmatrix}u\\v\\1\end{bmatrix}=TP_w\end{split}\]</div>
+<p>DLT, P3P, UPnP, Bundle Adjustment [最小化重投影误差]</p>
+<p>EPnP，用于重定位: 用4个控制点构建的质心坐标系表示每一个<span class="math notranslate nohighlight">\(x_i\)</span></p>
+<ol class="arabic simple">
+<li>四个控制点：3D点的中心点，所有3D点减去中心点的SVD三个主方向</li>
+<li>所有3D点都表示为4个控制点，即计算<span class="math notranslate nohighlight">\(\alpha\)</span>向量</li>
+<li>求解Mx=0的M，svd分解得到最小特征值对应的特征向量，即为最小二乘解</li>
+<li>恢复R,ts</li>
+</ol>
+<div class="admonition-todo admonition" id="index-3">
+<p class="first admonition-title">Todo</p>
+<p class="last">恢复R,ts</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cv</span><span class="p">::</span><span class="n">solvePnP</span><span class="p">(</span><span class="o">...</span><span class="n">cv</span><span class="p">::</span><span class="n">SOLVERPNP_EPNP</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="icp">
+<h3>8.4 ICP<a class="headerlink" href="#icp" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id20">
+<h3>8.4.1 线性代数求解<a class="headerlink" href="#id20" title="Permalink to this headline"></a></h3>
+<p>Iterative Closest
+Point，迭代最近点，SE3/SIM3，point-to-point，已知两个点云与其中的对应点，求变换矩阵使变换后的距离最小。ICP是一个解析解。</p>
+<p>ORB-SLAM中用了3个点，根据W转换到另一个矩阵N，SVD N求解R</p>
+<div class="admonition-todo admonition" id="index-4">
+<p class="first admonition-title">Todo</p>
+<p class="last">推导，trace</p>
+</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;X={x_1, x_2,...,x_{n}}, P = {p_1, p_2,...,p_{n}} \\
+&amp;E(R,t) = \frac{1}{n}\sum_{i=1}^{n}||x_i-Rp_i-t||^2 \\
+&amp;u_x = \frac{1}{n}\sum_{i=1}^n(x_i), u_p = \frac{1}{n}\sum_{i=1}^n(p_i) \\
+&amp;X' = {x_i-u_x} = {x_i'}, P' = {p_i-u_p} = {p_i'} \\
+&amp;W=\sum_{i=1}^{n}x_i'p_i'^T=U\begin{bmatrix}\sigma_1&amp;0&amp;0\\0&amp;\sigma_2&amp;0\\0&amp;0&amp;\sigma_3\end{bmatrix}V^T\\
+&amp;R = UV^T, t=u_x-Ru_p\end{split}\]</div>
+<p>SIM3</p>
+<div class="math notranslate nohighlight">
+\[e_i=\frac{1}{\sqrt s}p_i-\sqrt sRp_i'\]</div>
+</div>
+<div class="section" id="id21">
+<h3>8.4.2 非线性优化求解<a class="headerlink" href="#id21" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;error = \frac{1}{2}\sum_{i=1}^n||p_i-exp(\xi ^{\times})p_i'||^2\\
+&amp;\frac{\partial e}{\partial \delta \xi}=-(Tp)^{\odot}\end{split}\]</div>
+</div>
+<div class="section" id="id22">
+<h3>8.5 三角化与深度估计<a class="headerlink" href="#id22" title="Permalink to this headline"></a></h3>
+<blockquote>
+<div><p>DLT算法</p>
+<p>已知<span class="math notranslate nohighlight">\(x_1=\lambda Mx_2\)</span>，则<span class="math notranslate nohighlight">\(x1 \times (Mx_2)=0, Ax=0\)</span>，SVD分解</p>
+</div></blockquote>
+<p>在求解了R,t之后，根据多个视角的相机位姿，匹配像素点，求地图点的3D坐标</p>
+<p>优化</p>
+<ul class="simple">
+<li>尽量让两帧之间的t大一些</li>
+<li>亚像素</li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cv</span><span class="p">::</span><span class="n">trianglulatePoints</span><span class="p">(</span><span class="n">T1</span><span class="p">,</span><span class="n">T2</span><span class="p">,</span><span class="n">pts_1</span><span class="p">,</span><span class="n">pts_2</span><span class="p">,</span><span class="n">pts_4d</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id23">
+<h3>8.5.1 叉乘消元求解深度<a class="headerlink" href="#id23" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;x_1,x_2归一化坐标系，则:\\
+&amp;s_1x_1=s_2Rx_2+t\\
+&amp;s_1x_1^{\times}x_1=0=s_2x_1^{\times}Rx_2+x_1^{\times}t\end{split}\]</div>
+</div>
+<div class="section" id="d">
+<h3>8.5.2 叉乘求解3D坐标<a class="headerlink" href="#d" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;z_rx_r=T_{rw}P_w\\
+&amp;z_cx_c=T_{cw}P_w\\
+&amp;r:reference, c:camera\\
+&amp;x_r \times z_rx_r = x_r \times T_{rw}P_w\\
+&amp;x_c \times z_cx_c = x_c \times T_{cw}P_w\\
+&amp;\begin{bmatrix}x_r \times T_{rw}\\x_c \times T_{cw}\end{bmatrix}P_w=0,A\in R^{6*4}\\
+&amp;奇异值分解求得P_w\end{split}\]</div>
+</div>
+<div class="section" id="cramers-p336">
+<h3>8.5.3 Cramer’s解 P336<a class="headerlink" href="#cramers-p336" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;Cramer's: Ax=b,|A| \neq 0,then:\\
+&amp;x_1=\frac{|B_1|}{|A|},x_2=\frac{|B_2|}{|A|},B_j为A的第j列被b替换后的矩阵\\
+&amp;s_1x_1=s_2Rx_2+t\\
+&amp;s_1x_1-s_2Rx_2=t\\
+&amp;同乘x_1^T: s_1x_1^Tx_1-s_2x_1^TRx_2=x_1^Tt\\
+&amp;同乘(Rx_2)^T: s_1(Rx_2)^Tx_1-s_2(Rx_2)^TRx_2=(Rx_2)^Tt\\
+&amp;一元二次方程组:\begin{bmatrix}x_1^Tx_1&amp;-x_1^TRx_2\\(Rx_2)^Tx_1&amp;-(Rx_2)^T(Rx_2)\end{bmatrix}\begin{bmatrix}s_1\\s_2\end{bmatrix}=\begin{bmatrix}x_1^Tt\\(Rx_2)^Tt\end{bmatrix}\end{split}\]</div>
+</div>
+<div class="section" id="mid-point-method">
+<h3>8.5.3 公垂线的中点 Mid Point Method<a class="headerlink" href="#mid-point-method" title="Permalink to this headline"></a></h3>
+<p>对于双目的三角化，三角形相似</p>
+<p><img alt="image0" src="../_images/191.png" /></p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\begin{split}&amp;\left\{ \begin{array}
+\frac{x}{z}=\frac{u_x}{f}\\
+\frac{b-x}{z}=\frac{-u_x'}{f}\\
+d=u_x-u_x'\\
+\end{array} \right. =&gt;
+\left\{ \begin{array}\\
+x=\frac{u_x}{f}z\\
+y=\frac{u_y}{f}z\\
+z=\frac{fb}{d}
+\end{array} \right.\end{split}\]</div>
+</div></blockquote>
+</div>
+<div class="section" id="bundle-adjustment">
+<h3>8.6 Bundle Adjustment<a class="headerlink" href="#bundle-adjustment" title="Permalink to this headline"></a></h3>
+<blockquote>
+<div><p>定义:</p>
+<p>从视觉重建中提炼出最优的3D模型和相机参数，从每一个特征点反射出来的几束光线(bundles
+of light
+rays)，在我们把相机姿态和特征点空间位置做出最优的调整(adjustment)之后，最后收束到相机光心的这个过程。</p>
+</div></blockquote>
+<div class="admonition-todo admonition" id="index-5">
+<p class="first admonition-title">Todo</p>
+<p class="last">数值导数</p>
+</div>
+<p>PnP的BA是一个重投影误差问题。像素坐标（观测到的投影位置）与3D点按照当前估计的位姿进行投影得到的位置的误差，为重投影误差</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;error=\sum_{i=1}^n||u_i-\frac{1}{s_i}Kexp(\xi^{\times})P_i||^2\\
+&amp;P'=(exp(\xi^{\times})P)_{1：3}\\
+&amp;相机模型： u=f_x\frac{X'}{Z'}+c_x,v=f_y\frac{Y'}{Z'}+c_y\\
+&amp;链式法则[2*6的矩阵]： \frac{\partial e}{\partial \delta \xi}=\frac{\partial e(\delta \xi \oplus \xi)}{\partial \delta \xi}=\frac{\partial e}{\partial P'}\frac{\partial P'}{\partial \delta \xi}\\
+&amp;\frac{\partial e}{\partial P'}=-\begin{bmatrix}\frac{f_x}{Z'}&amp;0&amp;-\frac{f_xX'}{Z'^2}\\0&amp;\frac{f_y}{Z'}&amp;-\frac{f_yY'}{Z'^2}\end{bmatrix}\\
+&amp;\frac{\partial (Tp)}{\partial \delta \xi}=(Tp)^{\odot}=\begin{bmatrix}I &amp; -(Rp+t)^{\times}\\0&amp;0^T\end{bmatrix}=\begin{bmatrix}I &amp; -P'^{\times}\\0&amp;0^T\end{bmatrix}\\
+&amp;取前三列: \frac{\partial (Tp)}{\partial \delta \xi}=\begin{bmatrix}I &amp; -P'^{\times}\end{bmatrix}=\begin{bmatrix}1&amp;0&amp;0&amp;0&amp;-Z'&amp;Y'\\0&amp;1&amp;0&amp;Z'&amp;0&amp;-X'\\0&amp;0&amp;1&amp;-Y'&amp;X'&amp;0\end{bmatrix}\\
+&amp;相乘: \frac{\partial e}{\partial \delta \xi}=-\begin{bmatrix}\frac{f_x}{Z'}&amp;0&amp;-\frac{f_xX'}{Z'^2}&amp;\frac{f_xX'Y'}{Z'^2}&amp;f_x+\frac{f_xX'^2}{Z'^2}&amp;\frac{f_xY'}{Z'^2}\\0&amp;\frac{f_y}{Z'}&amp;-\frac{f_yY'}{Z'^2}&amp;-f_y-\frac{f_yY'^2}{Z'^2}&amp;\frac{f_yX'Y'}{Z'^2}&amp;\frac{f_yX'^2}{Z'^2}\end{bmatrix}\end{split}\]</div>
+<p>同理，对于三维坐标点</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;链式法则[2*3的矩阵]：\frac{\partial e}{\partial P}=\frac{\partial e}{\partial P'}\frac{\partial P'}{\partial P}\\
+&amp;P'=TP=RP+t\\
+&amp;\frac{\partial P'}{\partial P}=R\end{split}\]</div>
+</div>
+<div class="section" id="id24">
+<h3>8.7. 光流法与直接法<a class="headerlink" href="#id24" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id25">
+<h3>8.7.1 光流法<a class="headerlink" href="#id25" title="Permalink to this headline"></a></h3>
+<p>假设：像素灰度值在各个图像中是固定不变的，某一个窗口内的像素具有相同的运动。</p>
+<p>LK光流(稀疏的)经常用作<strong>角点的跟踪</strong></p>
+<p>灰度不变的假设，运动较大的时候用多层光流</p>
+<p>存在的问题： 没有用到相机本身的几何结构，
+没有考虑到相机的旋转和图像的缩放， 对于边界上的点,光流不好追踪</p>
+</div>
+<div class="section" id="id26">
+<h3>8.7.2 直接法<a class="headerlink" href="#id26" title="Permalink to this headline"></a></h3>
+<p>不需要求对应点</p>
+<p>最小化光度误差</p>
+<div class="admonition-todo admonition" id="index-6">
+<p class="first admonition-title">Todo</p>
+<p class="last">光度误差的误差函数雅克比求导</p>
+</div>
+</div>
+</div>
+<div class="section" id="id27">
+<h2>10. 后端<a class="headerlink" href="#id27" title="Permalink to this headline"></a></h2>
+<div class="section" id="id28">
+<h3>10.1 递归方法<a class="headerlink" href="#id28" title="Permalink to this headline"></a></h3>
+<p>卡尔曼滤波[TODO: 推导]</p>
+</div>
+<div class="section" id="ba">
+<h3>10.2 BA与图优化<a class="headerlink" href="#ba" title="Permalink to this headline"></a></h3>
+<p>矩阵求逆<span class="math notranslate nohighlight">\(O(n^3)\)</span>。</p>
+<p>高斯牛顿会求解如下方程</p>
+<div class="math notranslate nohighlight">
+\[Hx=-b\]</div>
+<p>H矩阵所有相机位姿C在前，路标P在后，则成箭头形状。C与C，P与P之间的约束较少，大多是C与P之间的约束。
+<img alt="image4" src="../_images/171.png" /></p>
+</div>
+<div class="section" id="id29">
+<h3>10.2.2 边缘化<a class="headerlink" href="#id29" title="Permalink to this headline"></a></h3>
+<p>对于上述稀疏H矩阵求逆的优化。</p>
+<p>将路标信息边缘化到了相机的信息中[Marginalization，Schur]，变换化后的B矩阵也一定程度反应了相机之间的共视关系(Co-Visibility)</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\begin{bmatrix}B&amp;E\\E^T&amp;C\end{bmatrix}\begin{bmatrix}\Delta x_c\\\Delta x_p\end{bmatrix}=\begin{bmatrix}v\\w\end{bmatrix}\end{split}\]</div>
+<p>高斯消元</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\begin{bmatrix}I&amp;-EC^{-1}\\0&amp;I\end{bmatrix}\begin{bmatrix}B&amp;E\\E^T&amp;C\end{bmatrix} \begin{bmatrix}\Delta x_c\\ \Delta x_p\end{bmatrix} =
+&amp;\begin{bmatrix}I&amp;-EC^{-1}\\0&amp;I\end{bmatrix}\begin{bmatrix}v\\w\end{bmatrix}\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\begin{bmatrix}B-EC^{-1}E^T&amp;0\\E^T&amp;C\end{bmatrix}\begin{bmatrix}\Delta x_c\\ \Delta x_p\end{bmatrix} =
+&amp;\begin{bmatrix}v-EC^{-1}w\\w\end{bmatrix}\end{split}\]</div>
+<p>即，先求解得到相机位姿，带入下部得到地图点位姿。</p>
+<p>ORB_SLAM中，刻意选取具有共视观测的帧作为关键帧，Schur消元后得到的就是稠密矩阵。在滑动窗口的方法中，每一帧都要做一次BA，保持S矩阵的稀疏性，即选择边缘化一部分相机/路标</p>
+</div>
+<div class="section" id="id30">
+<h3>10.2.3 零空间<a class="headerlink" href="#id30" title="Permalink to this headline"></a></h3>
+<p>滑动窗口，例如关键帧x1~x5，当x6加入的时候，边缘化x1，同时，x1对应的路标点也同样去除，以保证H矩阵的稀疏性。</p>
+<p>将一些不客观变量变得可观了。详见DSO。</p>
+</div>
+<div class="section" id="pose-graph">
+<h3>10.3 Pose Graph<a class="headerlink" href="#pose-graph" title="Permalink to this headline"></a></h3>
+<p>去除路标点(特征点)的边，只保留Pose，即H矩阵只保留B区域。</p>
+</div>
+<div class="section" id="id31">
+<h3>10.3.1 图优化雅克比的推导<a class="headerlink" href="#id31" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\Delta \xi_{ij}=ln(exp((-\xi_i)^{\times})exp(\xi_j^{\times}))^{\vee}，T_{ij}=T_i^{-1}T_j\\
+&amp;e_{ij}=T_{ij}^{-1}T_i^{-1}T_j=ln(exp((-\xi_{ij})^{\times})exp((-\xi_i)^{\times})exp(\xi_j^{\times}))^{\vee}\\
+&amp;左扰动,伴随交换顺序，近似:\\
+&amp;\frac{\partial e_{ij}}{\partial \delta \xi_i}=-J_r^{-1}(e_{ij})Ad(T_j^{-1})\\
+&amp;\frac{\partial e_{ij}}{\partial \delta \xi_j}=J_r^{-1}(e_{ij})Ad(T_j^{-1})\\
+&amp;J_r^{-1}(e_{ij}) \approx I+\frac{1}{2}\begin{bmatrix}\phi_e^{\times}&amp;\rho_e^{\times}\\0&amp;\phi_e^{\times}\end{bmatrix}\end{split}\]</div>
+<div class="admonition-todo admonition" id="index-7">
+<p class="first admonition-title">Todo</p>
+<p class="last">J_r推导</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Matirx6d</span> <span class="n">J</span><span class="p">;</span>
+<span class="n">J</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="n">SO3</span><span class="p">::</span><span class="n">hat</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">so3</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">());</span>
+<span class="n">J</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="n">SO3</span><span class="p">::</span><span class="n">hat</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">translation</span><span class="p">());</span>
+<span class="n">J</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="n">Eigen</span><span class="p">::</span><span class="n">Matrix3d</span><span class="p">::</span><span class="n">Zero</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span>
+<span class="n">J</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">=</span><span class="n">SO3</span><span class="p">::</span><span class="n">hat</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">so3</span><span class="p">()</span><span class="o">.</span><span class="n">log</span><span class="p">());</span>
+<span class="n">J</span><span class="o">=</span><span class="n">J</span><span class="o">*</span><span class="mf">0.5</span><span class="o">+</span><span class="n">Matrix6d</span><span class="p">::</span><span class="n">Identity</span><span class="p">;</span>
+<span class="n">_jacobianOplusXi</span><span class="o">=-</span><span class="n">J</span><span class="o">*</span><span class="n">v2</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">Adj</span><span class="p">();</span>
+<span class="n">_jacobianOplusXj</span><span class="o">=</span><span class="n">J</span><span class="o">*</span><span class="n">v2</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">Adj</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id32">
+<h3>10.4 因子图<a class="headerlink" href="#id32" title="Permalink to this headline"></a></h3>
+<blockquote>
+<div><p>贝叶斯网络</p>
+<p>是一种概率图，由随机变量的节点和表达随机变量条件独立性的边组成，形成一个有向无环图(Directed
+Acyclic Graph)。是一个带箭头的图。</p>
+</div></blockquote>
+<p>因子图是一个无向图，有两种节点，表示优化变量的变量节点，表示因子的因子节点。变量节点包括位姿与路标，因子节点包括观测与输入。</p>
+<p>对于因子图的优化，就是调整各变量的值，使他们的<strong>因子之乘积最大化</strong>。</p>
+<p>相对于BA的优点：</p>
+<ul class="simple">
+<li>每次新加入节点的时候，不需要优化整张图</li>
+</ul>
+<div class="admonition-todo admonition" id="index-8">
+<p class="first admonition-title">Todo</p>
+<p class="last">加速策略: QR分解，部分QR分解</p>
+</div>
+<div class="admonition-todo admonition" id="index-9">
+<p class="first admonition-title">Todo</p>
+<p class="last">gtsam代码阅读</p>
+</div>
+</div>
+</div>
+<div class="section" id="id33">
+<h2>12. 回环检测<a class="headerlink" href="#id33" title="Permalink to this headline"></a></h2>
+<div class="section" id="id34">
+<h3>12.1 基本概念<a class="headerlink" href="#id34" title="Permalink to this headline"></a></h3>
+<p>基于几何的方法，基于外观的方法，Precision-Recall曲线</p>
+</div>
+<div class="section" id="id35">
+<h3>12.2 词袋模型<a class="headerlink" href="#id35" title="Permalink to this headline"></a></h3>
+<p>Bag of Words，DBoW2,
+加速两帧之间的特征点匹配速度，追求准确率，召回率放宽30%。</p>
+<p>每张图片压缩乘图像描述子，使得图像与图像匹配更加快。强调的是Words的有无，而不是顺序。</p>
+</div>
+<div class="section" id="kmeans">
+<h3>12.2.1 kmeans++<a class="headerlink" href="#kmeans" title="Permalink to this headline"></a></h3>
+<p>把已经提取的大量特征点聚类成一个含有k个单词的字典。</p>
+<p>2000张图片，每张图片1000个特征点，就是对<span class="math notranslate nohighlight">\(2*10^6\)</span>的点，做第一层kmeans，在第一层的基础上，做第二次kmeans，依此类推。kmeans聚类中点的选择不是随机选择，而是让不同类中点的距离相对较远，越远则被选择作为中心店的距离概率越大[转盘算法]。</p>
+<div class="admonition-todo admonition" id="index-10">
+<p class="first admonition-title">Todo</p>
+<p class="last">KD-Tree</p>
+</div>
+<p>相比KD-Tree，分层语法树更加快，对数级。[但KD-Tree更加准确，因为kmeans中的k比较难以选择]</p>
+</div>
+<div class="section" id="k">
+<h3>12.2.3 语法树，k叉树<a class="headerlink" href="#k" title="Permalink to this headline"></a></h3>
+<ul class="simple">
+<li>判断当前图像属于哪一个节点，</li>
+<li>可以根据需求选用细分到哪一层</li>
+</ul>
+</div>
+<div class="section" id="id36">
+<h3>12.2.4 相似度计算<a class="headerlink" href="#id36" title="Permalink to this headline"></a></h3>
+<ul>
+<li><p class="first">权重：定义方式可以不同</p>
+<p>[词频效果其实并不好] 统计每个叶节点的词频，词频越高，特征点越不显著。</p>
+<p>word vale: word weight + word numbers，Binary</p>
+<p>TF[Term Frequency]: 在一副图像中经常出现，区分度就高。IDF[Inverse
+Document Frequency]: 在字典中频率越低，区分度越高</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;IDF_i=log\frac{n}{n_i}\\
+&amp;TF_i=\frac{n_i}{n}\\
+&amp;\eta_i = TF_i*IDF_i\end{split}\]</div>
+<p>一张图片构成的词袋: <span class="math notranslate nohighlight">\(v_A={&lt;w_1,\eta_1&gt;,&lt;w_2,\eta_2&gt;,0,...}\)</span></p>
+</li>
+<li><p class="first">相似度[距离]计算，L1,L2等，一般取得分前10 [注意不取最高的]</p>
+<div class="math notranslate nohighlight">
+\[s(v_A-v_B)=2\sum_{i=1}^N|v_{Ai}|+|v_{Bi}|-|v_{Ai}-v_{Bi}|\]</div>
+<p>A,B相似度评分可以用当前帧与上一帧的相似度(先验)做一个归一化，更加具有适用性。具体的，从covisibility
+graph的相邻关键帧得到最低分数s，然后词袋库中选取高于s的帧作为候选关键帧。</p>
+<p>再计算T根据匹配关键点的数量进行筛选</p>
+</li>
+<li><p class="first">正向检索：第一层为图像，权重大的描述子不匹配的话，则过</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vector</span><span class="o">&lt;</span><span class="nb">map</span><span class="o">&lt;</span><span class="n">nodeId</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">FeatureIds</span><span class="o">&gt;&gt;&gt;</span> <span class="n">images</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">逆向检索：第一层为words。</p>
+</li>
+</ul>
+<blockquote>
+<div>Paper: Bags of binary words for fast place recognition in image
+sequences</div></blockquote>
+</div>
+</div>
+<div class="section" id="id37">
+<h2>13. 建图<a class="headerlink" href="#id37" title="Permalink to this headline"></a></h2>
+<div class="section" id="id38">
+<h3>13.1 极限搜索与块匹配<a class="headerlink" href="#id38" title="Permalink to this headline"></a></h3>
+<p>块匹配中差异值计算： SAD(sum of Absolute Difference)，SSD(Sum of Squared
+Distance)，NCC(Normalized Cross Correlation)</p>
+<div class="math notranslate nohighlight">
+\[S(A,B)_{NCC}=\frac{\sum_{i,j}A(i,j)B(i,j)}{\sqrt{\sum_{i,j}A(i,j)^2\sum_{i,j}B(i,j)^2}}，0表示不相似\]</div>
+<div class="admonition-todo admonition" id="index-11">
+<p class="first admonition-title">Todo</p>
+<p class="last">可以将当前帧的像素进行变换后再进行块匹配。</p>
+</div>
+</div>
+<div class="section" id="id39">
+<h3>13.2 高斯分布的深度滤波器<a class="headerlink" href="#id39" title="Permalink to this headline"></a></h3>
+<p>深度的估计也是一个状态估计的问题，存在滤波器与非线性优化两种思路。</p>
+<p>深度滤波器：每一个地图点不是用深度值来表示，而是用一个概率来表示，速度较快。</p>
+</div>
+<div class="section" id="id40">
+<span id="id41"></span><h3>13.2.1 高斯分布的深度滤波器<a class="headerlink" href="#id40" title="Permalink to this headline"></a></h3>
+<p>当前估计高斯<span class="math notranslate nohighlight">\(N_1\)</span>与观测<span class="math notranslate nohighlight">\(N_2\)</span>融合</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;P(d)=N(\mu,\sigma^2),P(d_{obs})=N(\mu_{obs},\sigma_{obs}^2)\\
+&amp;\mu_{fuse}=\frac{\sigma_{obs}^2\mu+\sigma^2\mu_{obs}}{\sigma^2+\sigma_{obs}^2},\sigma_{fuse}=\frac{\sigma^2\sigma_{obs}^2}{\sigma^2+\sigma_{obs}^2}\end{split}\]</div>
+<p>如何求解<span class="math notranslate nohighlight">\(\sigma_{obs}^2\)</span>呢，可以考虑几何不确定性与光度不确定性</p>
+<ul>
+<li><p class="first">几何不确定性： 块匹配的一个像素差会导致估计的3D点偏移多少[详见P327]</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;一个像素带来的角度变化: \delta \beta = arctan(\frac{1}{f})\\
+&amp;正弦定理: ||p'||=||t||\frac{sin\beta'}{sin\gamma'}\\
+&amp;\sigma_{obs}=||p||-||p'||\end{split}\]</div>
+</li>
+</ul>
+<div class="admonition-todo admonition" id="index-12">
+<p class="first admonition-title">Todo</p>
+<p class="last">极限搜索的程序</p>
+</div>
+</div>
+<div class="section" id="id42">
+<h3>13.2.2 均匀-高斯混合分布<a class="headerlink" href="#id42" title="Permalink to this headline"></a></h3>
+<p>Q: 地图点的存储形式</p>
+<p>存储位姿，观测到该地图点的关键帧，平均观测方向，最佳描述子，被观测到的次数</p>
+</div>
+<div class="section" id="id43">
+<h3>13.3 逆深度<a class="headerlink" href="#id43" title="Permalink to this headline"></a></h3>
+<p>三维点(x,y,z)相比与深度，有较强的相关性</p>
+<p>深度必定大于相机焦距，不满足高斯分布，逆深度对高斯分布逆和较好</p>
+</div>
+</div>
+</div>
+<div class="section" id="id44">
+<h1>[深蓝学院] 视觉SLAM作业<a class="headerlink" href="#id44" title="Permalink to this headline"></a></h1>
+<div class="section" id="id45">
+<h2>1. 概述与预备知识<a class="headerlink" href="#id45" title="Permalink to this headline"></a></h2>
+<p>Linux，综述文件，CMake练习，ORB-SLAM2了解与运行</p>
+</div>
+<div class="section" id="id46">
+<span id="id47"></span><h2>2. 三维空间的刚体运动<a class="headerlink" href="#id46" title="Permalink to this headline"></a></h2>
+<blockquote>
+<div><p class="rubric" id="eigen-3-2">2 熟悉 Eigen 矩阵运算 (3 分,约 2 小时)</p>
+<p>Eigen(<a class="reference external" href="http://eigen.tuxfamily.org">http://eigen.tuxfamily.org</a>)是常用的 C++
+矩阵运算库,具有很高的运算效率。大部分 需要在 C++
+中使用矩阵运算的库,都会选用 Eigen 作为基本代数库,例如 Google
+Tensorflow,Google Ceres,GTSAM 等。本次习题,你需要使用 Eigen
+库,编写程序,求解一个线性方程组。为此,你需要先
+了解一些有关线性方程组数值解法的原理。 设线性方程 Ax = b,在 A
+为方阵的前提下,请回答以下问题:</p>
+<ol class="arabic simple">
+<li>在什么条件下,x 有解且唯一?</li>
+<li>高斯消元法的原理是什么?</li>
+<li>QR 分解的原理是什么?</li>
+<li>Cholesky 分解的原理是什么?</li>
+<li>编程实现 A 为 100 × 100 随机矩阵时,用 QR 和 Cholesky 分解求 x
+的程序。你可以参考本次课 用到的 useEigen 例程。
+提示:你可能需要参考相关的数学书籍或文章。请善用搜索引擎。Eigen
+固定大小矩阵最大支持到 50, 所以你会用到动态大小的矩阵</li>
+</ol>
+</div></blockquote>
+<p>2.1.1 解的唯一性</p>
+<p><span class="math notranslate nohighlight">\(Ax=b\)</span>，
+当A为非奇异的时候，方程有唯一解，即A为方阵，可逆，并且行列式不为0。</p>
+<p>对于齐次的情况，最小二乘解为矩阵A最小奇异值对应的特征向量</p>
+<p><strong>伪逆的推导</strong></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;||Ax-b||^2=(Ax-b)^T(Ax-b)\\
+&amp;=(x^TA^T-b^T)(Ax-b)\\
+&amp;=(x^TA^TAx-2b^TAx+b^Tb)\\
+&amp;\frac{\partial E}{\partial x}=2A^TAx-2A^Tb=0\\
+&amp;A^TAx=A^Tb\\
+&amp;x=(A^TA)^{-1}A^Tb\end{split}\]</div>
+<p>2.1.2 高斯消元原理</p>
+<p>逐行消元，最后一行求出xn，依次向上计算x的值</p>
+<p>即将A变为一个上三角矩阵，反向代入法求解(back-substituion)，
+<span class="math notranslate nohighlight">\(O(n^3)\)</span></p>
+<p>2.1.3 QR分解原理</p>
+<p><span class="math notranslate nohighlight">\(A=Q*R, Q^{-1}=Q^T\)</span>，Q是正交矩阵，R是上三角矩阵。</p>
+<p>v左乘一个正交矩阵Q对于v的平方没影响: <span class="math notranslate nohighlight">\(v^TQ^TQv=v^Tv\)</span>。</p>
+<p>对于over-determined的方程，避免了求逆，使得解更加稳定</p>
+<p>2.1.4 Cholesky分解原理</p>
+<p>当A是正定的时候，<span class="math notranslate nohighlight">\(A=LL^T\)</span>。</p>
+<p>2.1.5 Eigen解方程</p>
+<p>直接调用</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">*</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">fullPivHouseholderQr</span><span class="p">()</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">ldlt</span><span class="p">()</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p class="rubric" id="id48">3 几何运算练习 (2 分,约 1 小时)</p>
+<p>下面我们来练习如何使用 Eigen/Geometry 计算一个具体的例子。</p>
+<p>设有小萝卜 1 一号和小萝卜二号位于世界坐标系中。小萝卜一号的位姿为:
+<span class="math notranslate nohighlight">\(q_1 = [0.55, 0.3, 0.2, 0.2], t_1 = [0.7, 1.1, 0.2]^T\)</span> (q
+的第一项为实部)。这里的 q 和 t 表达的是 <span class="math notranslate nohighlight">\(T_{cw}\)</span>
+,也就是世界到相机的变换关系。小萝卜二号的位姿为 $q_2 = [−0.1, 0.3,
+−0.7, 0.2], t_2 = [−0.1, 0.4, 0.8]^T $。</p>
+<p>现在,小萝卜一号看到某个点在自身的坐标系下,坐标为
+<span class="math notranslate nohighlight">\(p_1 = [0.5, −0.1, 0.2]^T\)</span>
+,求该向量在小萝卜二号坐标系下的坐标。请编程实现此事,并提交你的程序。
+提示:</p>
+<ol class="arabic simple">
+<li>四元数在使用前需要归一化。</li>
+<li>请注意 Eigen 在使用四元数时的虚部和实部顺序。</li>
+<li>参考答案为 <span class="math notranslate nohighlight">\(p_2 = [1.08228, 0.663509, 0.686957]^T\)</span>
+。你可以用它验证程序是否正确。</li>
+</ol>
+</div></blockquote>
+<p>注意初值与左乘即可</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Isometry3d</span> <span class="n">T</span> <span class="o">=</span> <span class="n">Isometry3d</span><span class="p">::</span><span class="n">Identity</span><span class="p">()</span>
+<span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">Quaterniond</span><span class="o">.</span><span class="n">normalized</span><span class="p">()</span><span class="o">.</span><span class="n">toRotationMatrix</span><span class="p">())</span>
+<span class="n">T</span><span class="o">.</span><span class="n">pretranslate</span><span class="p">(</span><span class="n">Vector3d</span><span class="p">(,,))</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p class="rubric" id="id49">4 旋转的表达 (2 分,约 1 小时)</p>
+<p>课程中提到了旋转可以用旋转矩阵、旋转向量与四元数表达,其中旋转矩阵与四元数是日常应用中常
+见的表达方式。请根据课件知识,完成下述内容的证明。</p>
+<ol class="arabic simple">
+<li>设有旋转矩阵 R,证明 $R^TR = I $且 <span class="math notranslate nohighlight">\(det(R)=+1\)</span>。</li>
+<li>设有四元数 q,我们把虚部记为 ε,实部记为 η,那么 q = (ε, η)。请说明 ε
+和 η 的维度。</li>
+<li></li>
+</ol>
+<p>定义运算<span class="math notranslate nohighlight">\(+, \oplus\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;q^+=\begin{bmatrix}\eta1+\epsilon^{\times}&amp;\epsilon\\-\epsilon^T&amp;\eta\end{bmatrix},
+&amp;q^{\oplus}=\begin{bmatrix}\eta1-\epsilon^{\times}&amp;\epsilon\\-\epsilon^T&amp;\eta\end{bmatrix}\end{split}\]</div>
+<p>即取 ε 的反对称矩阵(它们都成叉积的矩阵运算形式),1
+为单位矩阵。请证明对任意单位四元数 $q_1 , q_2
+$,四元数乘法可写成矩阵乘法:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;q_1 q_2 = q_1 ^ + q_2 \\
+&amp;q_1 q_2 = q_2 ^\oplus q_1\end{split}\]</div>
+</div></blockquote>
+<p>2.3.1 旋转矩阵的性质</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;R^TR=1\\
+&amp;RI=I', det(I)=1\\
+&amp;so: det(R) = 1\end{split}\]</div>
+<p>2.3.2 四元数的性质</p>
+<p>虚部三个数，实部一个数</p>
+<blockquote>
+<div><p class="rubric" id="id50">5 罗德里格斯公式的证明 (2 分,约 1 小时)</p>
+<p>罗德里格斯公式描述了从旋转向量到旋转矩阵的转换关系。设旋转向量长度为
+θ,方向为 n,那么旋 转矩阵 R 为:</p>
+<div class="math notranslate nohighlight">
+\[R = cos θI + (1 − cos θ)nn^T + sin θn^∧ .\]</div>
+<p>我们在课程中仅指出了该式成立,但没有给出证明。请你证明此式。
+提示:参考https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula</p>
+</div></blockquote>
+<blockquote>
+<div><p class="rubric" id="id51">6 四元数运算性质的验证 (1 分,约 1 小时)</p>
+<p>课程中介绍了单位四元数可以表达旋转。其中,在谈论用四元数 q 旋转点 p
+时,结果为: <span class="math notranslate nohighlight">\(p ′ = qpq^−{1}\)</span>. 我们说,此时 <span class="math notranslate nohighlight">\(p′\)</span>
+必定为虚四元数(实部为零)。请你验证上述说法。
+此外,上式亦可写成矩阵运算:<span class="math notranslate nohighlight">\(p ′ = Qp\)</span>。请根据你的推导,给出矩阵<span class="math notranslate nohighlight">\(Q\)</span>。注意此时
+$p, p ′ $都是四 元数形式的变量,所以 $Q $为 4 × 4 的矩阵。
+提示:如果使用第 4 题结果,那么有:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;p ′ = qpq^{−1}= q^+ p^+ q^{−1}= q^+ q^{−1\oplus} p.\\
+&amp;R = Im(q^+ q^{−1\oplus} ).\end{split}\]</div>
+<p>其中 Im 指取出虚部的内容。</p>
+</div></blockquote>
+</div>
+<div class="section" id="id52">
+<span id="id53"></span><h2>3. 李群与李代数<a class="headerlink" href="#id52" title="Permalink to this headline"></a></h2>
+<div class="section" id="id54">
+<h3>3.2 群的性质<a class="headerlink" href="#id54" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id55">
+<h3>3.3 验证向量叉乘的李代数性质<a class="headerlink" href="#id55" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="se-3">
+<h3>3.4 推导 SE(3) 的指数映射<a class="headerlink" href="#se-3" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id56">
+<h3>3.5 伴随<a class="headerlink" href="#id56" title="Permalink to this headline"></a></h3>
+<blockquote>
+<div><p class="rubric" id="id57">6 轨迹的描绘 (2 分,约 1 小时)</p>
+<p>我们通常会记录机器人的运动轨迹,来观察它的运动是否符合预期。大部分数据集都会提供标准轨迹
+以供参考,如 kitti、TUM-RGBD
+等。这些文件会有各自的格式,但首先你要理解它的内容。记世界坐标 系为 W
+,机器人坐标系为 C,那么机器人的运动可以用 <span class="math notranslate nohighlight">\(T_{WC}\)</span> 或
+<span class="math notranslate nohighlight">\(T_{CW}\)</span>来描述。现在,我们希望画出机器
+人在世界当中的运动轨迹,请回答以下问题:</p>
+<ol class="arabic simple">
+<li>事实上,<span class="math notranslate nohighlight">\(T_{WC}\)</span>
+的平移部分即构成了机器人的轨迹。它的物理意义是什么?为何画出 T W C
+的平移 部分就得到了机器人的轨迹?</li>
+<li>我为你准备了一个轨迹文件(code/trajectory.txt)。该文件的每一行由若干个数据组成,格式为<span class="math notranslate nohighlight">\([t, t x , t y , t z , q x , q y , q z , q w ]\)</span>。同时,我为你提供了画图程序
+draw_trajectory.cpp
+文件。该文件提供了画图部分的代码,请你完成数据读取部分的代码,然后书写
+CMakeLists.txt 以让此程序运行起来。注意我 们需要用到 Pangolin
+库来画图,所以你需要事先安装 Pangolin(如果你做了第一次作业,那么现
+在已经安装了)。CMakeLists.txt 可以参照 ORB-SLAM2 部分。</li>
+</ol>
+</div></blockquote>
+<p>读轨迹画图就可以，涉及了pangolin的一些操作</p>
+<blockquote>
+<div><p>7 * 轨迹的误差 (2 分,约 1 小时) 本题为附加题。
+除了画出真实轨迹以外,我们经常需要把 SLAM
+估计的轨迹与真实轨迹相比较。下面说明比较的原
+理,请你完成比较部分的代码实现。 设真实轨迹(ground-truth)为
+<span class="math notranslate nohighlight">\(T_g\)</span> ,估计轨迹 <span class="math notranslate nohighlight">\(T_e\)</span> 。它们都以 <span class="math notranslate nohighlight">\(T_{WC}\)</span>
+的形式存储,格式同上题。现在,你
+需要计算估计轨迹的误差。我们假设每一个<span class="math notranslate nohighlight">\(T_g\)</span>都与给定的<span class="math notranslate nohighlight">\(T_e\)</span>
+对应。那么,对于任意第 i 个位姿,它的误 差可定义为:</p>
+<div class="math notranslate nohighlight">
+\[e_i=[log(T_{gi}^{-1}T_{ei})]^2\]</div>
+<p>即两个位姿之差的李代数二范数。于是,可以定义两条轨迹的均方根(Root-Mean-Square-Error,
+RMSE)为:</p>
+<div class="math notranslate nohighlight">
+\[RMSE(g,e)=\sqrt{\frac{1}{n}\sum_{i=1}^ne_i^2}.\]</div>
+<p>我为你准备了 code/ground-truth.txt 和 code/estimate.txt
+两条轨迹。请你根据上面公式,实现 RMSE 的计算代码,给出最后的 RMSE
+结果。作为验算,参考答案为:2.207。 注:</p>
+<ol class="arabic simple">
+<li>公式 (7)
+满足度量的定义:非负性、同一性、对称性、三角不等式,故形成距离函数。类似的,可
+以定义 SO(3) 上的距离为:</li>
+</ol>
+<div class="math notranslate nohighlight">
+\[d(R_1, R_2) = [ln(R_1^{-1}R_2)]^2\]</div>
+<p>关于距离定义可以参见拓扑学或者泛函教材。</p>
+<ol class="arabic simple" start="2">
+<li>实际当中的轨迹比较还要更复杂一些。通常 ground-truth
+由其他传感器记录(如 vicon),它的采
+样频率通常高于相机的频率,所以在处理之前还需要按照时间戳对齐。另外,由于传感器坐标系不
+一致,还需要计算两个坐标系之间的差异。这件事也可以用 ICP
+解得,我们将在后面的课程中讲 到。</li>
+<li>你可以用上题的画图程序将两条轨迹画在同一个图里,看看它们相差多少。</li>
+</ol>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id58">
+<h2>4. 相机模型与非线性优化<a class="headerlink" href="#id58" title="Permalink to this headline"></a></h2>
+<p>4.2 图像去畸变</p>
+<p>4.3 双目视差的使用</p>
+<p>4.4 矩阵运算微分</p>
+<p>4.5 高斯牛顿法的曲线拟合实验</p>
+<p>4.6 批量最大似然估计</p>
+</div>
+<div class="section" id="id59">
+<span id="id60"></span><h2>5. 特征点法视觉里程计<a class="headerlink" href="#id59" title="Permalink to this headline"></a></h2>
+<p>这几题都比较好</p>
+<p>5.2 ORB 特征点</p>
+<p>5.3 从E恢复R,t</p>
+<p>5.4 用 G-N 实现 Bundle Adjustment 中的位姿估计</p>
+<p>5.5 用 ICP 实现轨迹对齐</p>
+</div>
+<div class="section" id="id61">
+<span id="id62"></span><h2>6. 光流法与直接法<a class="headerlink" href="#id61" title="Permalink to this headline"></a></h2>
+<p>6.2 LK 光流</p>
+<p id="id63">6.3 直接法</p>
+<p>6.4 使用光流计算视差</p>
+</div>
+<div class="section" id="id64">
+<h2>7. 后端优化<a class="headerlink" href="#id64" title="Permalink to this headline"></a></h2>
+<p id="bundle-adjustment-1">7.2 Bundle Adjustment</p>
+<p>7.3 直接法的 Bundle Adjustment</p>
+</div>
+<div class="section" id="id65">
+<span id="id66"></span><h2>8. 回环检测<a class="headerlink" href="#id65" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id67">
+<h2>9. 大作业<a class="headerlink" href="#id67" title="Permalink to this headline"></a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to Mario’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html" class="btn btn-neutral float-right" title="[深蓝学院] 激光SLAM理论与实践" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

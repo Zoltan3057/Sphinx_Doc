@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>[Books] State Estimation for Robotics &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="VINS_MONO" href="VINS_MONO.html" />
+    <link rel="prev" title="ORB SLAM" href="ORB_SLAM.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSO.html">DSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">[Books] State Estimation for Robotics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">1. 引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">2. 概率论基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3. 线性高斯系统的状态估计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">4. 非线性非高斯系统的状态估计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">5. 偏差，匹配和外点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">6. 三维几何学基础</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">6.1 向量和参考系</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">6.2 旋转</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">6.2.1 旋转的运动学</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">7. 矩阵李群</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">7.1 几何学</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">7.1.1 特殊正交群和特殊欧几里得群</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">7.1.2 李代数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">7.1.3 指数映射</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">7.1.4 伴随</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bch">7.1.5 BCH公式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">7.1.6 距离，体积与积分</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">7.1.7 插值</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">7.1.8 齐次坐标点</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">7.1.9 微积分和优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20">7.2 运动学</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21">7.3 概率与统计</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id22">8. 位姿估计问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id23">9. 位姿和点的估计问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id24">9.1 光束平差法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25">9.2 同时定位与地图构建</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>[Books] State Estimation for Robotics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_VSLAM/State_Estimation_for_Robotics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="books-state-estimation-for-robotics">
+<h1>[Books] State Estimation for Robotics<a class="headerlink" href="#books-state-estimation-for-robotics" title="Permalink to this headline"></a></h1>
+<p>Author: Mario</p>
+<div class="section" id="id1">
+<h2>1. 引言<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id2">
+<h2>2. 概率论基础<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id3">
+<h2>3. 线性高斯系统的状态估计<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id4">
+<h2>4. 非线性非高斯系统的状态估计<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id5">
+<h2>5. 偏差，匹配和外点<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id6">
+<h2>6. 三维几何学基础<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h2>
+<p>区别向量的变换关系与坐标的变换关系，前者没有数值上的计算，在没有指定参考系的时候，不知道其有几个维度</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}r=\begin{bmatrix}r_1&amp;r_2&amp;r_3\end{bmatrix}\begin{bmatrix}\underline{r_1}\\\underline{r_2}\\\underline{r_3}\end{bmatrix}\end{split}\]</div>
+<p>这边下箭头打不出来，带下箭头的都是矢量，没有具体的数值含义。</p>
+<div class="section" id="id7">
+<h3>6.1 向量和参考系<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h3>
+<p>概念: 向量，参考系，点积，叉积</p>
+<p>反对称[skew symmetric]，符号格式与两个基向量叉积的符号格式相同</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}r_1^{\times}=\begin{bmatrix}0&amp;-r_3&amp;r_2\\r_3&amp;0&amp;-r_1\\-r_2&amp;r_1&amp;0\end{bmatrix}\\\end{split}\]</div>
+<p>反对称的性质</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;(r_1^{\times})^T=-r_1^{\times}\\
+&amp;r_1^{\times}r_1=0\\
+&amp;r_1^{\times}s_1=-s_1r_1^{\times}\\\end{split}\]</div>
+<p>旋转矩阵的逆就是他的转置，所以，旋转矩阵是正交矩阵(orthonormal matrix)</p>
+</div>
+<div class="section" id="id8">
+<h3>6.2 旋转<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h3>
+<p>正交矩阵：矩阵的转置就是逆矩阵</p>
+<ul>
+<li><p class="first">旋转矩阵：9个参数3自由度，约束为<strong>正交且行列式为1</strong></p>
+</li>
+<li><p class="first">欧拉角：RPY等顺序，计算较为麻烦，存在诸多sin,cos，奇异值，一个位姿对应多个欧拉角</p>
+</li>
+<li><p class="first">欧拉参数</p>
+</li>
+<li><p class="first">四元数：复合算子把四元数14变为一个44的矩阵</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;q=\begin{bmatrix}\varepsilon\\\eta\end{bmatrix},
+\varepsilon=\begin{bmatrix}x\\y\\z\end{bmatrix}=\begin{bmatrix}a_1sin(\phi/2)\\a_2sin(\phi/2)\\a_3sin(\phi/2)\end{bmatrix},
+\eta=cos(\phi/2)\\
+&amp;R=q^+q^{-1\oplus}\end{split}\]</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id9">
+<h3>6.2.1 旋转的运动学<a class="headerlink" href="#id9" title="Permalink to this headline"></a></h3>
+<p>书本给出了在一个坐标系下的速度，加速度，如何变换到另一个坐标系下。其中，速度包含了坐标系之间的W，加速度包含了科里奥利加速度，角加速度，向心加速度。见公式6.42，6.44。</p>
+<ul class="simple">
+<li>一个向量在变换，两个坐标系也在变化，则在1坐标系看2坐标系上的向量随时间的变化量，等于向量在2系的变化量加上坐标系之间的变化量。即，<strong>惯性系下速度与运动系下速度存在变换关系</strong>。</li>
+<li>一个向量，在不同坐标系的速度向量本来就不是同一个</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id10">
+<h2>7. 矩阵李群<a class="headerlink" href="#id10" title="Permalink to this headline"></a></h2>
+<div class="section" id="id11">
+<h3>7.1 几何学<a class="headerlink" href="#id11" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id12">
+<h3>7.1.1 特殊正交群和特殊欧几里得群<a class="headerlink" href="#id12" title="Permalink to this headline"></a></h3>
+<p>特殊正交群，特殊欧式群，微分流行(连续的群)就是李群</p>
+</div>
+<div class="section" id="id13">
+<h3>7.1.2 李代数<a class="headerlink" href="#id13" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id14">
+<h3>7.1.3 指数映射<a class="headerlink" href="#id14" title="Permalink to this headline"></a></h3>
+<p>李群与李代数的相互关系，见Visual Slam。</p>
+<p>一个二维空间上李群与李代数的例子。</p>
+<p><img alt="image0" src="../_images/110.png" /></p>
+<ul class="simple">
+<li>SE3中J的讨论</li>
+</ul>
+<p><span class="math notranslate nohighlight">\(JJ^T\)</span>是正定的</p>
+<p>在SE3上，J与旋转矩阵的关系: <span class="math notranslate nohighlight">\(C=I+\phi^{\times}J\)</span></p>
+</div>
+<div class="section" id="id15">
+<h3>7.1.4 伴随<a class="headerlink" href="#id15" title="Permalink to this headline"></a></h3>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">主要用于交换乘积顺序的推导</p>
+</div>
+<p>SE3的伴随Ad(SE3)也是一个李群，对应Ad(se3)是对应的李代数</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\xi^{\times}\in se(3),\xi^{\curlywedge}\in ad(se(3))\\
+&amp;T \in SE(3), \tau \in Ad(SE(3))m\\
+&amp;Ad(exp(\xi^{\times}))=exp(ad(\xi^{\times}))\end{split}\]</div>
+</div>
+<div class="section" id="bch">
+<h3>7.1.5 BCH公式<a class="headerlink" href="#bch" title="Permalink to this headline"></a></h3>
+<p>两个R相乘，在李代数上面结果公式。</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\phi_{R_1R_2}=ln(R_1R_2)^{\vee}=ln(exp(\phi_1^{\times})exp(\phi_2^{\times}))^{\vee}\\
+=\left\{
+\begin{array}{lr}
+J_l(\phi_2)^{-1}\phi_1+\phi_2,&amp;\phi_1小量 \\
+\phi_1+J_r(\phi_1)^{-1}\phi_2,&amp;\phi_2小量
+\end{array}
+\right.\end{split}\]</div>
+<p>其中，左右雅克比可以互换</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}J_l(\phi)=CJ_r{\phi}\\
+J_l(-\phi)=J_r{\phi}\end{split}\]</div>
+</div>
+<div class="section" id="id16">
+<h3>7.1.6 距离，体积与积分<a class="headerlink" href="#id16" title="Permalink to this headline"></a></h3>
+<p>距离，旋转相乘的李代数值</p>
+<div class="math notranslate nohighlight">
+\[\phi_{12}=ln(R_1^TR_2)^{\vee}\]</div>
+<p>积分</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}dR=|det(J)|d\phi\\
+\int_{SO_3}f(R)dR \to \int_{|\phi| \le \pi}f(\phi)|det(J)|d\phi\end{split}\]</div>
+</div>
+<div class="section" id="id17">
+<h3>7.1.7 插值<a class="headerlink" href="#id17" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[R=(R_2R_1^T)^{\alpha}R_1\]</div>
+<p>恒定的角速度做旋转</p>
+</div>
+<div class="section" id="id18">
+<h3>7.1.8 齐次坐标点<a class="headerlink" href="#id18" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id19">
+<h3>7.1.9 微积分和优化<a class="headerlink" href="#id19" title="Permalink to this headline"></a></h3>
+<p>李代数上的导数</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial (Rv)}{\partial \phi}=-(Rv)^{\times}J\]</div>
+<p>扰动的导数</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial (Rv)}{\partial \psi}=-(Rv)^{\times}\]</div>
+</div>
+<div class="section" id="id20">
+<h3>7.2 运动学<a class="headerlink" href="#id20" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id21">
+<h3>7.3 概率与统计<a class="headerlink" href="#id21" title="Permalink to this headline"></a></h3>
+<p>对于标量，对其估计可以用高斯分布来表示，在R矩阵，如何表示其概率</p>
+<p><strong>问题描述</strong>:
+现在对固定向量x进行旋转,得到y,考虑当旋转不确定时,y的不确定性
+(y的均值和方差)</p>
+<p><span class="math notranslate nohighlight">\(y=Rx,C=exp(\epsilon^{\times})\bar{C},\epsilon \sim N(0,\Sigma)\)</span></p>
+<p>协方差误差表明,二阶方法与sigma point方法类似,四阶方法明显优于其他</p>
+</div>
+</div>
+<div class="section" id="id22">
+<h2>8. 位姿估计问题<a class="headerlink" href="#id22" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id23">
+<h2>9. 位姿和点的估计问题<a class="headerlink" href="#id23" title="Permalink to this headline"></a></h2>
+<div class="section" id="id24">
+<h3>9.1 光束平差法<a class="headerlink" href="#id24" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id25">
+<h3>9.2 同时定位与地图构建<a class="headerlink" href="#id25" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ORB_SLAM.html" class="btn btn-neutral float-left" title="ORB SLAM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="VINS_MONO.html" class="btn btn-neutral float-right" title="VINS_MONO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

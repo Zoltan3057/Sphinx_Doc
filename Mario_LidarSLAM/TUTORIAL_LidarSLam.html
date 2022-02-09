@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>[深蓝学院] 激光SLAM理论与实践 &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DSO" href="../Mario_VSLAM/DSO.html" />
+    <link rel="prev" title="[深蓝学院] 视觉SLAM" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">[深蓝学院] 激光SLAM理论与实践</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">1. 激光SLAM简要介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">2. 里程计运动模型及标定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3. 激光雷达模型和运动畸变矫正</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">4. 激光前端配准方法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#icp-point-ti-point">4.1 ICP [point-ti-point]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pl-icp-point-to-line">4.2 PL-ICP [point-to-line]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">4.3 基于优化的匹配方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">4.4 相关匹配方法及分枝定界加速</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">5. 基于滤波的激光方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">6. 基于图优化的激光方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">7. 基于已知定位的建图</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">7.1 覆盖栅格建图算法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">7.2 计数建图算法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tsdf">7.3 tsdf建图算法</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dslam">8. 3D激光SLAM介绍</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#point-to-plane-icp">8.1 Point-to-Plane ICP算法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">8.2 特征点法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ndt">8.3 NDT方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loam">8.4 LOAM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#id13">[深蓝学院] 激光SLAM理论与实践作业</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id14">1. 里程计标定</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">2.1 前后帧位姿解算</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">2.2 加入数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">2.3 求解线性最小二乘</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id18">3. 激光标定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id19">4. 帧间匹配的对比</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gmapping">5. GMapping的优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id20">6. 图优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id21">7. 地图构建</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/DSO.html">DSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>[深蓝学院] 激光SLAM理论与实践</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_LidarSLAM/TUTORIAL_LidarSLam.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slam">
+<h1>[深蓝学院] 激光SLAM理论与实践<a class="headerlink" href="#slam" title="Permalink to this headline"></a></h1>
+<div class="section" id="id1">
+<h2>1. 激光SLAM简要介绍<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id2">
+<h2>2. 里程计运动模型及标定<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id3">
+<h2>3. 激光雷达模型和运动畸变矫正<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id4">
+<h2>4. 激光前端配准方法<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h2>
+<div class="section" id="icp-point-ti-point">
+<h3>4.1 ICP [point-ti-point]<a class="headerlink" href="#icp-point-ti-point" title="Permalink to this headline"></a></h3>
+<p>Iterative Closest
+Point，迭代最近点，已知两个点云与其中的对应点，求变换矩阵使变换后的距离最小。ICP是一个解析解。[TODO:
+推导，trace]</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;X={x_1, x_2,...,x_{n}}, P = {p_1, p_2,...,p_{n}} \\
+&amp;E(R,t) = \frac{1}{n}\sum_{i=1}^{n}||x_i-Rp_i-t||^2 \\
+&amp;u_x = \frac{1}{n}\sum_{i=1}^n(x_i), u_p = \frac{1}{n}\sum_{i=1}^n(p_i) \\
+&amp;X' = {x_i-u_x} = {x_i'}, P' = {p_i-u_p} = {p_i'} \\
+&amp;W=\sum_{i=1}^{n}x_i'p_i'^T=U\begin{bmatrix}\sigma_1&amp;0&amp;0\\0&amp;\sigma_2&amp;0\\0&amp;0&amp;\sigma_3\end{bmatrix}V^T\\
+&amp;R = UV^T, t=u_x-Ru_p\end{split}\]</div>
+</div>
+<div class="section" id="pl-icp-point-to-line">
+<h3>4.2 PL-ICP [point-to-line]<a class="headerlink" href="#pl-icp-point-to-line" title="Permalink to this headline"></a></h3>
+<p><a class="reference internal" href="../_images/16.png"><img alt="image0" src="../_images/16.png" style="width: 400px;" /></a></p>
+<p>由于激光每次打的点不是确定的，所以前后两帧可能打的不是同一个点，计算点到点的距离误差就比较大了-&gt;采用点到线的误差。</p>
+<p>中间的是Point-to-Point，左边的是Point-to-Line</p>
+<p>直线法向量乘以一个向量，就是向量在法向量上的投影，即向量点到直线点的距离。</p>
+<p>同样，也是解析解。</p>
+</div>
+<div class="section" id="id5">
+<h3>4.3 基于优化的匹配方法<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h3>
+<p>地图的占用概率(似然场)，<span class="math notranslate nohighlight">\(S_i(T)\)</span>
+激光数据转换到世界坐标系[非线性]，M为对应坐标的地图占用概率[地图的插值]</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;E(T)=arg\min_T\sum[1-M(S_i(T))]^2 \\
+&amp;S_i(T)=\begin{bmatrix}cosT_{\theta} &amp; -sinT_{\theta} &amp; T_x \\ sinT_{\theta} &amp; cosT_{\theta} &amp; T_y\\ 0 &amp; 0 &amp; 1 \end{bmatrix}\begin{bmatrix}p_{ix} \\ p_{iy} \\ 1\end{bmatrix}\end{split}\]</div>
+<p>泰勒展开+链式法则</p>
+<div class="math notranslate nohighlight">
+\[E(T+\Delta T)=arg\min_T\sum[1-M(S_i(T))-\frac{\delta M(S_i(T))}{\delta S_i(T)}\frac{\delta S_i(T)}{\delta T}\Delta T]^2\]</div>
+<p>二次方程求导等于0</p>
+<p>第一个地图的导数，双线性插值，对x的导数与x轴方向差值相关</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\frac{\partial M(x,y)}{\partial x}= \frac{y-y_0}{y_1-y_0}(M(P_{11})-M(P_{01}))+\frac{y_1-y}{y_1-y_0}(M(P_{10})-M(P_{00}))\\
+&amp;\frac{\partial M(x,y)}{\partial y}=\frac{x-x_0}{x_1-x_0}(M(P_{11})-M(P_{10}))+\frac{x_1-x}{x_1-x_0}(M(P_{01})-M(P_{00}))\\\end{split}\]</div>
+<p>第二个变换的导数，直接求导，3-1对3个量求导，结果为3-3，第一列对应对<span class="math notranslate nohighlight">\(T_x\)</span>的导数，第二列对应<span class="math notranslate nohighlight">\(T_y\)</span>的导数，第三列对应<span class="math notranslate nohighlight">\(T_{\theta}\)</span>的导数。</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;S_i(T)=\begin{bmatrix} cosT_{\theta}*p_{ix} - sinT_{\theta}* p_{iy} + T_x \\sinT_{\theta} * p_{ix}+cosT_{\theta}*p_{iy}+T_y\\1\end{bmatrix} \\
+&amp;\frac{\delta S_i(T)}{\delta T}=\begin{bmatrix}1&amp;0&amp;-sinT_{\theta} * p_{ix}-cosT_{\theta}*p_{iy}\\0&amp;1&amp;cosT_{\theta}*p_{ix} - sinT_{\theta}* p_{iy}\\0&amp;0&amp;0\end{bmatrix}\end{split}\]</div>
+<p>补充: 拉格朗日插值</p>
+<p>在[a,b]已知<span class="math notranslate nohighlight">\(x_i,y_i\)</span>n个点，则插值多项式存在且唯一</p>
+<div class="math notranslate nohighlight">
+\[L_n(x)=a_0+a_1x+a_2x^2+...+a_nx^n\]</div>
+<p>设计基函数Li，则</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;L_n(x) = \sum_{i=0}^nl_i(x)y_i \\
+&amp;l_i(x) = c(x-x_0)...(x-x_n) 去除x_i项 \\
+&amp;c = \frac{1}{(x_i-x_0)...(x_i-x_n)}\end{split}\]</div>
+</div>
+<div class="section" id="id6">
+<h3>4.4 相关匹配方法及分枝定界加速<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h3>
+<p>Correlation-Based Method:
+相关方法，暴力匹配方法，还可以计算出本次位姿匹配的方差</p>
+<ul>
+<li><p class="first">优化1： 先遍历角度，然后遍历x,y，计算cos,sin的次数就大大减少</p>
+</li>
+<li><p class="first">优化2：粗细分辨率搜索 [不是严格的最优解]</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">同样是上界为什么不是最优解，与分枝定界的区别]</p>
+</div>
+<p>粗细分辨率搜索，每个位姿对应地图中的一个栅格点(当前机器人在栅格地图中的位置)。</p>
+<p>现在粗分辨率地图(25cm-25cm)中找到对应位姿的栅格，然后细分，在细分辨率地图(2.5cm-2.5cm)中搜索</p>
+<p>粗分辨率地图对应细分辨率空间的所有栅格的最大值，</p>
+</li>
+<li><p class="first">优化3： 分枝定界 [保证是最优解]</p>
+<p>可以多层分辨率，最大值问题，确定上界，子树的最优解小于父节点。</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id7">
+<h2>5. 基于滤波的激光方法<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="id8">
+<h2>6. 基于图优化的激光方法<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h2>
+<p>见Homework的第6题</p>
+<p>H的稀疏性： 因为边只与两个节点有关，所以稀疏</p>
+</div>
+<div class="section" id="id9">
+<h2>7. 基于已知定位的建图<a class="headerlink" href="#id9" title="Permalink to this headline"></a></h2>
+<div class="section" id="id10">
+<h3>7.1 覆盖栅格建图算法<a class="headerlink" href="#id10" title="Permalink to this headline"></a></h3>
+<p>Occupancy
+Mapping，二值贝叶斯滤波算法，设x代表一个栅格的状态，第二行也是个贝叶斯滤波。假设了一个Markov过程</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;p(x|z_{1:t}) = \frac{p(z_t|x, z_{1:t-1})p(x|z_{1:t-1})}{p(z_t|z_{1:t-1})}=\frac{p(z_t|x)p(x|z_{1:t-1})}{p(z_t|z_{1:t-1})}\\
+&amp;=\frac{p(x|z_t)p(z_t)}{p(x)}\frac{p(x|z_{1:t-1})}{p(z_t|z_{1:t-1})}\\
+&amp;p(\overline{\rm x}|z_{1:t})=\frac{p(\overline{\rm x}|z_t)p(z_t)}{p(\overline{\rm x})}\frac{p(\overline{\rm x}|z_{1:t-1})}{p(z_t|z_{1:t-1})}\\
+&amp;\frac{p(x|z_{1:t})}{p(\overline{\rm x}|z_{1:t})}=\frac{p(x|z_t)p(x|z_{1:t-1})p(\overline{\rm x})}{p(\overline{\rm x}|z_t)p(\overline{\rm x}|z_{1:t-1})p(x)}\\
+&amp;p(x)=1-\frac{1}{1+exp(l(x))}\\
+&amp;l(x|z_{1:t})=l(x|z_t)+l(x|z_{1:t-1})-l(x)\end{split}\]</div>
+</div>
+<div class="section" id="id11">
+<h3>7.2 计数建图算法<a class="headerlink" href="#id11" title="Permalink to this headline"></a></h3>
+<p>一个极大似然估计，求导等于0。</p>
+<div class="math notranslate nohighlight">
+\[m_j=\frac{hits(j)}{hits(j)+misses(j)}\]</div>
+</div>
+<div class="section" id="tsdf">
+<h3>7.3 tsdf建图算法<a class="headerlink" href="#tsdf" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;sdf = d_{laser} - d_{map point}\\
+&amp;tsdf(x)=\frac{W_{i-1}(x)tsdf_{i-1}(x) + w_i(x)tsdf_i(x)}{w_{i-1}(x)+w_i(x)}\end{split}\]</div>
+<p>这边w取1，每次更新的时候，w都+1。</p>
+<p>如果sdf&gt;0，表明点打到了map point对应表面的内部。</p>
+<p>tsdf值的计算，可选只更新hit附近truncation_distance的范围，或者从激光远点到hit点+truncation_distance的范围。</p>
+<p>对激光计算完地图点的tsdf值之后，比较当前地图点与上下两个地图点tsdf的正负差异，如果异号，则表明两个地图点之间是障碍物表面，插值得到障碍物表面精确的位置。</p>
+<p>就正常插值，下面这个式子也不大准确。</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{A-X}{-a} = \frac{X-B}{b}\\
+X = \frac{Ab-Ba}{b-a}\end{split}\]</div>
+<p><a class="reference internal" href="../_images/12.png"><img alt="image7" src="../_images/12.png" style="width: 400px;" /></a></p>
+</div>
+</div>
+<div class="section" id="dslam">
+<h2>8. 3D激光SLAM介绍<a class="headerlink" href="#dslam" title="Permalink to this headline"></a></h2>
+<p>存在IMU的时候，roll, pitch都可以观测出来，这个时候就是4个维度的变化。</p>
+<div class="section" id="point-to-plane-icp">
+<h3>8.1 Point-to-Plane ICP算法<a class="headerlink" href="#point-to-plane-icp" title="Permalink to this headline"></a></h3>
+<p>主要是求法向量的值，然后将对应点<span class="math notranslate nohighlight">\(p_1,p_2\)</span>转换到同一坐标系下，向量相乘得到法向量的投影，即距离。</p>
+<div class="math notranslate nohighlight">
+\[T_{opt}=arg\min_T\sum[(T*\vec{p_1}-\vec{p_2})*\vec{n_i}]^2\]</div>
+</div>
+<div class="section" id="id12">
+<h3>8.2 特征点法<a class="headerlink" href="#id12" title="Permalink to this headline"></a></h3>
+<p>得到匹配然后ICP，上面对应点可以用最近邻，这边是特征点匹配方法。</p>
+</div>
+<div class="section" id="ndt">
+<h3>8.3 NDT方法<a class="headerlink" href="#ndt" title="Permalink to this headline"></a></h3>
+<p>将空间划分为小方格，然后根据前k帧数据得到一个小方格的均值和方差，当前帧一个激光点在小栅格内部的打分用高斯分布来打分，最大化score。</p>
+<p>分段连续，每个小方格内部是连续的。</p>
+<div class="math notranslate nohighlight">
+\[s \approx \sum(e^{-\frac{1}{2}(x_i-u)^T\epsilon^{-1}(x_i-u)})\]</div>
+<p>视觉基线10cm，测量2m的物体的时候，匹配差一个像素就差8cm。</p>
+</div>
+<div class="section" id="loam">
+<h3>8.4 LOAM<a class="headerlink" href="#loam" title="Permalink to this headline"></a></h3>
+<p>帧间匹配+帧与地图的匹配</p>
+</div>
+</div>
+</div>
+<div class="section" id="id13">
+<h1>[深蓝学院] 激光SLAM理论与实践作业<a class="headerlink" href="#id13" title="Permalink to this headline"></a></h1>
+<p>Mario
+2022-01-24</p>
+<div class="section" id="id14">
+<h2>1. 里程计标定<a class="headerlink" href="#id14" title="Permalink to this headline"></a></h2>
+<div class="section" id="id15">
+<h3>2.1 前后帧位姿解算<a class="headerlink" href="#id15" title="Permalink to this headline"></a></h3>
+<p>这个变换太坑了，直接用机器人坐标写出来的变换是从机器人坐标到世界坐标系，我一般写成<span class="math notranslate nohighlight">\(T_{WA}\)</span>。</p>
+<p>然后，Eigen::Isometry2d初始化的时候需要置为Identity()，并且左乘。。。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>// 用变换矩阵好理解一些,last_pos就是上一帧机器人的位姿
+// Eigen::Matrix3d T_wl;
+// double l_theta = last_pos(2);
+// T_wl &lt;&lt; cos(l_theta), -sin(l_theta), last_pos(0),
+//         sin(l_theta), cos(l_theta), last_pos(1),
+//         0,0,1;
+Eigen::Isometry2d T_wl=Eigen::Isometry2d::Identity();
+T_wl.rotate(Eigen::Rotation2Dd(last_pos(2)));
+T_wl.pretranslate(Eigen::Vector2d(last_pos(0), last_pos(1))); // 左乘!!!!!
+</pre></div>
+</div>
+<p>然后，csm匹配计算位姿的时候，不能开debug模式，不然匹配轨迹是直线，原因不明。。。。。。。。</p>
+<p>弄完后效果如下，红色是匹配的，绿色是里程计的。</p>
+<p><a class="reference internal" href="../_images/8.png"><img alt="image1" src="../_images/8.png" style="width: 400px;" /></a></p>
+</div>
+<div class="section" id="id16">
+<h3>2.2 加入数据<a class="headerlink" href="#id16" title="Permalink to this headline"></a></h3>
+<p>比较简单，注意eigen需要初始化</p>
+</div>
+<div class="section" id="id17">
+<h3>2.3 求解线性最小二乘<a class="headerlink" href="#id17" title="Permalink to this headline"></a></h3>
+<p>TODO: 奇异值分解，最小二成，QR分解，矩阵论</p>
+<p>代码里直接调用就可以了，参考博客的写法</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Eigen</span><span class="p">::</span><span class="n">Matrix</span><span class="o">&lt;</span><span class="n">double</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">X_</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">colPivHouseholderQr</span><span class="p">()</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="../_images/9.png"><img alt="image2" src="../_images/9.png" style="width: 400px;" /></a></p>
+</div>
+</div>
+<div class="section" id="id18">
+<h2>3. 激光标定<a class="headerlink" href="#id18" title="Permalink to this headline"></a></h2>
+<p>两次线性插值即可，即先找到一帧数据起始结束的里程计数据，然后分为k段(5ms为一段，代码里是直接tf接收)。</p>
+<p>其次，在每个小段里面插值得到每个点的变化位姿。</p>
+<p><a class="reference internal" href="../_images/10.png"><img alt="image8" src="../_images/10.png" style="width: 400px;" /></a></p>
+</div>
+<div class="section" id="id19">
+<h2>4. 帧间匹配的对比<a class="headerlink" href="#id19" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="gmapping">
+<h2>5. GMapping的优化<a class="headerlink" href="#gmapping" title="Permalink to this headline"></a></h2>
+<p>[TODO]</p>
+</div>
+<div class="section" id="id20">
+<h2>6. 图优化<a class="headerlink" href="#id20" title="Permalink to this headline"></a></h2>
+<p>最小二乘，计算H,b,e，直接套公式</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;error = T_{12}*T_{21}\\
+&amp;e_{ij}(x) = \begin{bmatrix}
+&amp;R_{ij}^T(Ri^T(tj-ti)-tij) \\
+&amp;\theta_j-\theta_i-\theta_{ij}
+&amp;\end{bmatrix} \\
+&amp;\frac{\partial e_{ij}(x)}{\partial x_i}=\begin{bmatrix}
+&amp;-R_{ij}^TR_i^T &amp; R_{ij}^T\frac{\partial R_i^T}{\partial \theta}(t_j-t_i) \\
+&amp;0 &amp; -1
+&amp;\end{bmatrix} \\
+&amp;\frac{\partial e_{ij}(x)}{\partial x_j}=\begin{bmatrix}
+&amp;R_{ij}^TR_i^T &amp; 0 \\
+&amp;0 &amp; 1
+&amp;\end{bmatrix}\end{split}\]</div>
+<p><a class="reference internal" href="../_images/11.png"><img alt="image3" src="../_images/11.png" style="width: 400px;" /></a></p>
+</div>
+<div class="section" id="id21">
+<h2>7. 地图构建<a class="headerlink" href="#id21" title="Permalink to this headline"></a></h2>
+<p>都是直接套公式，栅格地图每次+log_odd，计数累计hits，misses值做比，TSDF先计算TSDF然后插值得到障碍物具体位置</p>
+<p><a class="reference internal" href="../_images/13.png"><img alt="image4" src="../_images/13.png" style="width: 400px;" /></a></p>
+<p><a class="reference internal" href="../_images/14.png"><img alt="image5" src="../_images/14.png" style="width: 400px;" /></a></p>
+<p><a class="reference internal" href="../_images/15.png"><img alt="image6" src="../_images/15.png" style="width: 400px;" /></a></p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html" class="btn btn-neutral float-left" title="[深蓝学院] 视觉SLAM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../Mario_VSLAM/DSO.html" class="btn btn-neutral float-right" title="DSO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

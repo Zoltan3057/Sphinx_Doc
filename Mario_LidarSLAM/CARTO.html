@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartographer &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Lego Loam" href="LEGO_LOAM.html" />
+    <link rel="prev" title="AMCL 算法详解" href="AMCL.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/DSO.html">DSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cartographer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#scan-matching">1. Scan Matching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#closing-loops">2. Closing Loops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#branch-and-bound-scan-matching">3. Branch-and-Bound Scan Matching</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#node-selection">3.1 Node Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#branching-rule">3.2 Branching Rule</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-upper-bounds">3.3 Computing Upper Bounds</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Cartographer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_LidarSLAM/CARTO.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="cartographer">
+<h1>Cartographer<a class="headerlink" href="#cartographer" title="Permalink to this headline"></a></h1>
+<p>2022-01-21</p>
+<div class="section" id="scan-matching">
+<h2>1. Scan Matching<a class="headerlink" href="#scan-matching" title="Permalink to this headline"></a></h2>
+<div class="math notranslate nohighlight">
+\[\begin{split}T_{\xi}P = \begin{pmatrix}\cos\xi_{\theta} &amp; -\sin\xi_{\theta} \\ sin\xi_{\theta} &amp; \cos\xi_{\theta} \end{pmatrix}p + \begin{pmatrix} \xi_{x} \\ \xi_{y} \end{pmatrix}\end{split}\]</div>
+<p>地图值的更新 <span class="math notranslate nohighlight">\(p_{hit},p_{miss}\)</span> 公式一致</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;odds(p) = \frac{p}{1-p} \\
+&amp;M_{new}(x) = clamp(odds^{-1}(odds(M_{old}(x))*odds(p_{hit}))) \\
+&amp;= clamp(odds^{-1}(\frac{M_{old}}{1-M_{old}} * \frac{p_{hit}}{1-p_{hit}}))\end{split}\]</div>
+<ul>
+<li><p class="first">ceres scan matching</p>
+<div class="math notranslate nohighlight">
+\[\mathop{\arg\min}\limits_{\xi} \sum_{k=1}^{K}(1-M_{smooth}(T_{\xi}h_k))^2\]</div>
+<p><span class="math notranslate nohighlight">\(M_{smooth}\)</span>
+代表双三次插值法，用16个点近似<span class="math notranslate nohighlight">\(\frac{\sin(x*\pi)}{x}\)</span>，通常<span class="math notranslate nohighlight">\(a=-0.5\)</span></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}S(x) = \left\{\begin{array}{rcl}(a+2)|x|^3+(a+3)|x|^2+1 &amp;    &amp; 0\le|x|\le1\\ a|x|^3 - 5a|x|^2+8a|x|-4a &amp;    &amp;1\le|x|\le2\\ 0 &amp;    &amp;|x|\ge2\end{array}\right.\end{split}\]</div>
+<p>最近邻插值： 最近的点</p>
+<p>双线性插值： 左右(上下)两个点插值</p>
+</li>
+<li><p class="first">a pixel-accurate scan matching</p>
+<p>这个可以在没有imu的时候使用</p>
+</li>
+</ul>
+</div>
+<div class="section" id="closing-loops">
+<h2>2. Closing Loops<a class="headerlink" href="#closing-loops" title="Permalink to this headline"></a></h2>
+<p><span class="math notranslate nohighlight">\(\xi_i^m\)</span>submap在地图中的变换，<span class="math notranslate nohighlight">\(\xi_j^s\)</span>激光雷达在地图中的变换，<span class="math notranslate nohighlight">\(\xi_{i,j}\)</span>
+激光雷达与submap的变换。核函数是Huber Loss。</p>
+<div class="math notranslate nohighlight">
+\[\arg\min\frac{1}{2}\sum_{i,j}(\rho(E^2(\xi_i^m,\xi_j^s;\Sigma_{ij},\xi_{i,j})))\]</div>
+<p>直观理解，下式相等，m: submap, s:scan, w:world</p>
+<div class="math notranslate nohighlight">
+\[T_{ms} = T_{mw}*T_{ws}\]</div>
+</div>
+<div class="section" id="branch-and-bound-scan-matching">
+<h2>3. Branch-and-Bound Scan Matching<a class="headerlink" href="#branch-and-bound-scan-matching" title="Permalink to this headline"></a></h2>
+<p>优化函数，也是栅格地图的值与观测值保持一致，<span class="math notranslate nohighlight">\(\omega\)</span>是滑动搜索框。</p>
+<p>搜索的角度步长使得最远的激光点的变化程度小于一个栅格的距离。</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">这边栅格的值改为了最近邻的点，而不是三次插值。</p>
+</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;\xi^*=\arg\max\limits_{\xi\in\omega}\sum_{k=1}^kM_{nearest}(T_{\xi}h_k)\\
+&amp;d_{max} = \max|h_k|\\
+&amp;\cos(\theta) = \frac{d^2+d^2-r^2}{2d^2}\\
+&amp;\sigma_{\theta} = \arccos(1-\frac{r^2}{2d_{max}^2})\end{split}\]</div>
+<p>每次搜索范围，x,y变换7m，即步长为<span class="math notranslate nohighlight">\(\frac{30}{r}\)</span>，角度变化30°，选项步长为<span class="math notranslate nohighlight">\(\frac{30}{\sigma_{\theta}}\)</span>。</p>
+<div class="section" id="node-selection">
+<h3>3.1 Node Selection<a class="headerlink" href="#node-selection" title="Permalink to this headline"></a></h3>
+<p>总是从set里面选择分数最高的一个，即DFS。</p>
+</div>
+<div class="section" id="branching-rule">
+<h3>3.2 Branching Rule<a class="headerlink" href="#branching-rule" title="Permalink to this headline"></a></h3>
+<p>一个node由4个数组成的tuple构成，<span class="math notranslate nohighlight">\((c_x,c_y,c_{\theta},c_h)\)</span>，包含<span class="math notranslate nohighlight">\(2^{c_h}*2^{c_h}\)</span>个选项，角度唯一。</p>
+<div class="math notranslate nohighlight">
+\[c_x\le j_x&lt;c_x+2^{c_h},c_y\le j_y&lt;c_y+2^{c_h}\]</div>
+<p>每一层将上一层的x,y分为4个部分。</p>
+</div>
+</div>
+<div class="section" id="computing-upper-bounds">
+<h2>3.3 Computing Upper Bounds<a class="headerlink" href="#computing-upper-bounds" title="Permalink to this headline"></a></h2>
+<p>粗细分辨率的图，即地图值为<span class="math notranslate nohighlight">\(2^h*2^h\)</span>范围内的最大值，在粗分辨率地图的匹配值一定大于细分辨率的匹配值，所以得到了Upper
+Bounds。</p>
+<p>粗分辨率的score是对每个激光点分开求T，必然大于细分辨率的情况。</p>
+<p>例如，一个栅格分为四个小格子，00,01,10,11，有两个激光点，h1,h2，粗分辨率下，h1对应的T在00块，h2对应的T在11块。然而，在细分辨率00下，h2取不到最佳T(因为在11块)。所以，粗分辨率是上界。</p>
+<p><img alt="image0" src="../_images/1.png" /></p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="AMCL.html" class="btn btn-neutral float-left" title="AMCL 算法详解" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="LEGO_LOAM.html" class="btn btn-neutral float-right" title="Lego Loam" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

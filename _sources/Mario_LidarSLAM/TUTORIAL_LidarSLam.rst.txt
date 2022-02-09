@@ -1,0 +1,349 @@
+[深蓝学院] 激光SLAM理论与实践
+==============================
+
+1. 激光SLAM简要介绍
+-------------------
+
+2. 里程计运动模型及标定
+-----------------------
+
+3. 激光雷达模型和运动畸变矫正
+-----------------------------
+
+4. 激光前端配准方法
+-------------------
+
+4.1 ICP [point-ti-point]
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Iterative Closest
+Point，迭代最近点，已知两个点云与其中的对应点，求变换矩阵使变换后的距离最小。ICP是一个解析解。[TODO:
+推导，trace]
+
+.. math::
+
+
+   &X={x_1, x_2,...,x_{n}}, P = {p_1, p_2,...,p_{n}} \\
+   &E(R,t) = \frac{1}{n}\sum_{i=1}^{n}||x_i-Rp_i-t||^2 \\
+   &u_x = \frac{1}{n}\sum_{i=1}^n(x_i), u_p = \frac{1}{n}\sum_{i=1}^n(p_i) \\
+   &X' = {x_i-u_x} = {x_i'}, P' = {p_i-u_p} = {p_i'} \\
+   &W=\sum_{i=1}^{n}x_i'p_i'^T=U\begin{bmatrix}\sigma_1&0&0\\0&\sigma_2&0\\0&0&\sigma_3\end{bmatrix}V^T\\
+   &R = UV^T, t=u_x-Ru_p
+
+4.2 PL-ICP [point-to-line]
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|image0|
+
+由于激光每次打的点不是确定的，所以前后两帧可能打的不是同一个点，计算点到点的距离误差就比较大了->采用点到线的误差。
+
+中间的是Point-to-Point，左边的是Point-to-Line
+
+直线法向量乘以一个向量，就是向量在法向量上的投影，即向量点到直线点的距离。
+
+同样，也是解析解。
+
+4.3 基于优化的匹配方法
+~~~~~~~~~~~~~~~~~~~~~~
+
+地图的占用概率(似然场)，\ :math:`S_i(T)`
+激光数据转换到世界坐标系[非线性]，M为对应坐标的地图占用概率[地图的插值]
+
+.. math::
+
+
+   &E(T)=arg\min_T\sum[1-M(S_i(T))]^2 \\
+   &S_i(T)=\begin{bmatrix}cosT_{\theta} & -sinT_{\theta} & T_x \\ sinT_{\theta} & cosT_{\theta} & T_y\\ 0 & 0 & 1 \end{bmatrix}\begin{bmatrix}p_{ix} \\ p_{iy} \\ 1\end{bmatrix}
+
+泰勒展开+链式法则
+
+.. math::
+
+   E(T+\Delta T)=arg\min_T\sum[1-M(S_i(T))-\frac{\delta M(S_i(T))}{\delta S_i(T)}\frac{\delta S_i(T)}{\delta T}\Delta T]^2
+
+二次方程求导等于0
+
+第一个地图的导数，双线性插值，对x的导数与x轴方向差值相关
+
+.. math:: 
+
+   &\frac{\partial M(x,y)}{\partial x}= \frac{y-y_0}{y_1-y_0}(M(P_{11})-M(P_{01}))+\frac{y_1-y}{y_1-y_0}(M(P_{10})-M(P_{00}))\\
+   &\frac{\partial M(x,y)}{\partial y}=\frac{x-x_0}{x_1-x_0}(M(P_{11})-M(P_{10}))+\frac{x_1-x}{x_1-x_0}(M(P_{01})-M(P_{00}))\\
+
+第二个变换的导数，直接求导，3-1对3个量求导，结果为3-3，第一列对应对\ :math:`T_x`\ 的导数，第二列对应\ :math:`T_y`\ 的导数，第三列对应\ :math:`T_{\theta}`\ 的导数。
+
+.. math::
+
+
+   &S_i(T)=\begin{bmatrix} cosT_{\theta}*p_{ix} - sinT_{\theta}* p_{iy} + T_x \\sinT_{\theta} * p_{ix}+cosT_{\theta}*p_{iy}+T_y\\1\end{bmatrix} \\
+   &\frac{\delta S_i(T)}{\delta T}=\begin{bmatrix}1&0&-sinT_{\theta} * p_{ix}-cosT_{\theta}*p_{iy}\\0&1&cosT_{\theta}*p_{ix} - sinT_{\theta}* p_{iy}\\0&0&0\end{bmatrix}
+
+补充: 拉格朗日插值
+
+在[a,b]已知\ :math:`x_i,y_i`\ n个点，则插值多项式存在且唯一
+
+.. math::
+
+
+   L_n(x)=a_0+a_1x+a_2x^2+...+a_nx^n
+
+设计基函数Li，则
+
+.. math::
+
+
+   &L_n(x) = \sum_{i=0}^nl_i(x)y_i \\
+   &l_i(x) = c(x-x_0)...(x-x_n) 去除x_i项 \\
+   &c = \frac{1}{(x_i-x_0)...(x_i-x_n)}
+
+4.4 相关匹配方法及分枝定界加速
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Correlation-Based Method:
+相关方法，暴力匹配方法，还可以计算出本次位姿匹配的方差
+
+-  优化1： 先遍历角度，然后遍历x,y，计算cos,sin的次数就大大减少
+
+-  优化2：粗细分辨率搜索 [不是严格的最优解]
+
+   .. TODO::
+   
+      同样是上界为什么不是最优解，与分枝定界的区别]
+
+   粗细分辨率搜索，每个位姿对应地图中的一个栅格点(当前机器人在栅格地图中的位置)。
+
+   现在粗分辨率地图(25cm-25cm)中找到对应位姿的栅格，然后细分，在细分辨率地图(2.5cm-2.5cm)中搜索
+
+   粗分辨率地图对应细分辨率空间的所有栅格的最大值，
+
+-  优化3： 分枝定界 [保证是最优解]
+
+   可以多层分辨率，最大值问题，确定上界，子树的最优解小于父节点。
+
+5. 基于滤波的激光方法
+---------------------
+
+6. 基于图优化的激光方法
+-----------------------
+
+见Homework的第6题
+
+H的稀疏性： 因为边只与两个节点有关，所以稀疏
+
+7. 基于已知定位的建图
+---------------------
+
+7.1 覆盖栅格建图算法
+~~~~~~~~~~~~~~~~~~~~
+
+Occupancy
+Mapping，二值贝叶斯滤波算法，设x代表一个栅格的状态，第二行也是个贝叶斯滤波。假设了一个Markov过程
+
+.. math::
+
+
+   &p(x|z_{1:t}) = \frac{p(z_t|x, z_{1:t-1})p(x|z_{1:t-1})}{p(z_t|z_{1:t-1})}=\frac{p(z_t|x)p(x|z_{1:t-1})}{p(z_t|z_{1:t-1})}\\
+   &=\frac{p(x|z_t)p(z_t)}{p(x)}\frac{p(x|z_{1:t-1})}{p(z_t|z_{1:t-1})}\\
+   &p(\overline{\rm x}|z_{1:t})=\frac{p(\overline{\rm x}|z_t)p(z_t)}{p(\overline{\rm x})}\frac{p(\overline{\rm x}|z_{1:t-1})}{p(z_t|z_{1:t-1})}\\
+   &\frac{p(x|z_{1:t})}{p(\overline{\rm x}|z_{1:t})}=\frac{p(x|z_t)p(x|z_{1:t-1})p(\overline{\rm x})}{p(\overline{\rm x}|z_t)p(\overline{\rm x}|z_{1:t-1})p(x)}\\
+   &p(x)=1-\frac{1}{1+exp(l(x))}\\
+   &l(x|z_{1:t})=l(x|z_t)+l(x|z_{1:t-1})-l(x)
+
+7.2 计数建图算法
+~~~~~~~~~~~~~~~~
+
+一个极大似然估计，求导等于0。
+
+.. math::
+
+
+   m_j=\frac{hits(j)}{hits(j)+misses(j)}
+
+7.3 tsdf建图算法
+~~~~~~~~~~~~~~~~
+
+.. math::
+
+
+   &sdf = d_{laser} - d_{map point}\\
+   &tsdf(x)=\frac{W_{i-1}(x)tsdf_{i-1}(x) + w_i(x)tsdf_i(x)}{w_{i-1}(x)+w_i(x)}
+
+这边w取1，每次更新的时候，w都+1。
+
+如果sdf>0，表明点打到了map point对应表面的内部。
+
+tsdf值的计算，可选只更新hit附近truncation_distance的范围，或者从激光远点到hit点+truncation_distance的范围。
+
+对激光计算完地图点的tsdf值之后，比较当前地图点与上下两个地图点tsdf的正负差异，如果异号，则表明两个地图点之间是障碍物表面，插值得到障碍物表面精确的位置。
+
+就正常插值，下面这个式子也不大准确。
+
+.. math::
+
+
+   \frac{A-X}{-a} = \frac{X-B}{b}\\
+   X = \frac{Ab-Ba}{b-a}
+
+|image7|
+
+8. 3D激光SLAM介绍
+-----------------
+
+存在IMU的时候，roll, pitch都可以观测出来，这个时候就是4个维度的变化。
+
+8.1 Point-to-Plane ICP算法
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+主要是求法向量的值，然后将对应点\ :math:`p_1,p_2`\ 转换到同一坐标系下，向量相乘得到法向量的投影，即距离。
+
+.. math::
+
+
+   T_{opt}=arg\min_T\sum[(T*\vec{p_1}-\vec{p_2})*\vec{n_i}]^2
+
+8.2 特征点法
+~~~~~~~~~~~~
+
+得到匹配然后ICP，上面对应点可以用最近邻，这边是特征点匹配方法。
+
+8.3 NDT方法
+~~~~~~~~~~~
+
+将空间划分为小方格，然后根据前k帧数据得到一个小方格的均值和方差，当前帧一个激光点在小栅格内部的打分用高斯分布来打分，最大化score。
+
+分段连续，每个小方格内部是连续的。
+
+.. math::
+
+
+   s \approx \sum(e^{-\frac{1}{2}(x_i-u)^T\epsilon^{-1}(x_i-u)})
+
+视觉基线10cm，测量2m的物体的时候，匹配差一个像素就差8cm。
+
+8.4 LOAM
+~~~~~~~~
+
+帧间匹配+帧与地图的匹配
+
+[深蓝学院] 激光SLAM理论与实践作业
+=================================
+
+Mario
+2022-01-24
+
+1. 里程计标定
+-------------
+
+2.1 前后帧位姿解算
+~~~~~~~~~~~~~~~~~~
+
+这个变换太坑了，直接用机器人坐标写出来的变换是从机器人坐标到世界坐标系，我一般写成\ :math:`T_{WA}`\ 。
+
+然后，Eigen::Isometry2d初始化的时候需要置为Identity()，并且左乘。。。
+
+::
+
+       // 用变换矩阵好理解一些,last_pos就是上一帧机器人的位姿
+       // Eigen::Matrix3d T_wl;
+       // double l_theta = last_pos(2);
+       // T_wl << cos(l_theta), -sin(l_theta), last_pos(0),
+       //         sin(l_theta), cos(l_theta), last_pos(1),
+       //         0,0,1;
+       Eigen::Isometry2d T_wl=Eigen::Isometry2d::Identity();
+       T_wl.rotate(Eigen::Rotation2Dd(last_pos(2)));
+       T_wl.pretranslate(Eigen::Vector2d(last_pos(0), last_pos(1))); // 左乘!!!!!
+
+然后，csm匹配计算位姿的时候，不能开debug模式，不然匹配轨迹是直线，原因不明。。。。。。。。
+
+弄完后效果如下，红色是匹配的，绿色是里程计的。
+
+|image1|
+
+2.2 加入数据
+~~~~~~~~~~~~
+
+比较简单，注意eigen需要初始化
+
+2.3 求解线性最小二乘
+~~~~~~~~~~~~~~~~~~~~
+
+TODO: 奇异值分解，最小二成，QR分解，矩阵论
+
+代码里直接调用就可以了，参考博客的写法
+
+::
+
+   Eigen::Matrix<double,9,1> X_ = A.colPivHouseholderQr().solve(b);
+
+|image2|
+
+3. 激光标定
+-----------
+
+两次线性插值即可，即先找到一帧数据起始结束的里程计数据，然后分为k段(5ms为一段，代码里是直接tf接收)。
+
+其次，在每个小段里面插值得到每个点的变化位姿。
+
+|image8|
+
+4. 帧间匹配的对比
+-----------------
+
+5. GMapping的优化
+-----------------
+
+[TODO]
+
+6. 图优化
+---------
+
+最小二乘，计算H,b,e，直接套公式
+
+.. math::
+
+
+   &error = T_{12}*T_{21}\\
+   &e_{ij}(x) = \begin{bmatrix}
+   &R_{ij}^T(Ri^T(tj-ti)-tij) \\
+   &\theta_j-\theta_i-\theta_{ij}
+   &\end{bmatrix} \\
+   &\frac{\partial e_{ij}(x)}{\partial x_i}=\begin{bmatrix}
+   &-R_{ij}^TR_i^T & R_{ij}^T\frac{\partial R_i^T}{\partial \theta}(t_j-t_i) \\
+   &0 & -1
+   &\end{bmatrix} \\
+   &\frac{\partial e_{ij}(x)}{\partial x_j}=\begin{bmatrix}
+   &R_{ij}^TR_i^T & 0 \\
+   &0 & 1
+   &\end{bmatrix}
+
+|image3|
+
+7. 地图构建
+-----------
+
+都是直接套公式，栅格地图每次+log_odd，计数累计hits，misses值做比，TSDF先计算TSDF然后插值得到障碍物具体位置
+
+|image4|
+
+|image5|
+
+|image6|
+
+.. |image0| image:: images/16.png
+   :width: 400
+.. |image1| image:: images/8.png
+   :width: 400
+.. |image2| image:: images/9.png
+   :width: 400
+.. |image3| image:: images/11.png
+   :width: 400
+.. |image4| image:: images/13.png
+   :width: 400
+.. |image5| image:: images/14.png
+   :width: 400
+.. |image6| image:: images/15.png
+   :width: 400
+.. |image7| image:: images/12.png
+   :width: 400
+.. |image8| image:: images/10.png
+   :width: 400

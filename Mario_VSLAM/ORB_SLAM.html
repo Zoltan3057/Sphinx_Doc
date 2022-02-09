@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ORB SLAM &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="[Books] State Estimation for Robotics" href="State_Estimation_for_Robotics.html" />
+    <link rel="prev" title="DSO" href="DSO.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSO.html">DSO</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ORB SLAM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">1. 基本算法概念</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1.1 关键帧图的构建</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">1.3 初始化定位</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ba">1.4 BA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">1.5 剔除规则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">1.6 卡方分布</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tracking">2. Tracking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#orb">2.1 ORB优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#initial-pose-estimation-from-previous-frame">2.2 Initial Pose Estimation from Previous Frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#initial-pose-estimation-via-global-relocalization">2.3 Initial Pose Estimation via Global Relocalization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#track-local-map">2.4 Track Local Map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-keyframe-decision">2.5 New Keyframe Decision</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#local-mapping">3. Local Mapping</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#keyframe-insertion">3.1 KeyFrame Insertion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#recent-map-points-culling">3.2 Recent Map Points Culling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-map-point-creation">3.3 New Map Point Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#local-bundle-adjustment">3.4 Local Bundle Adjustment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#local-keyframe-culling">3.5 Local Keyframe Culling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#loop-closing">4. Loop Closing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#loop-candidate-detection">4.1 Loop Candidate Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compute-the-similarity-transformation">4.2 Compute the Similarity Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loop-fusion">4.3 Loop Fusion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#essential-graph-optimization">4.4 Essential Graph Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>ORB SLAM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_VSLAM/ORB_SLAM.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="orb-slam">
+<h1>ORB SLAM<a class="headerlink" href="#orb-slam" title="Permalink to this headline"></a></h1>
+<p>2022-01-23</p>
+<div class="section" id="id1">
+<h2>1. 基本算法概念<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<div class="section" id="id2">
+<h3>1.1 关键帧图的构建<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<p>covisibility graph:
+每个node都是关键帧，如果关键帧之间的共视地图点多余15，则对应两个node之间连接一个edge</p>
+<p>essential graph:
+首先是每个node对应的最大边(node都是相连的)，其次如果有共视超过100的也加入</p>
+</div>
+<div class="section" id="id3">
+<h3>1.3 初始化定位<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h3>
+<p>对于Fundamental Matrix， homography
+Matrix，计算变换误差，计算比例，<span class="math notranslate nohighlight">\(R_H\)</span>大于0.45就选择为单应模型</p>
+<div class="math notranslate nohighlight">
+\[R_H = \frac{S_H}{S_H+S_F}\]</div>
+</div>
+<div class="section" id="ba">
+<h3>1.4 BA<a class="headerlink" href="#ba" title="Permalink to this headline"></a></h3>
+<p>空间的三维点可以投影到相机平面，但存在误差，BA就是最小化重投影误差，优化量为三维点的坐标位置与转换。</p>
+</div>
+<div class="section" id="id4">
+<h3>1.5 剔除规则<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h3>
+<p>地图点与关键帧创建的要求很低，但后面会接上一个严格的剔除规则</p>
+</div>
+<div class="section" id="id5">
+<h3>1.6 卡方分布<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h3>
+<p>两个独立的服从标准正太分布随机变量的平方和，它服从<strong>2</strong>个自由度的Chi-squared
+distribution卡方分布。</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="tracking">
+<h2>2. Tracking<a class="headerlink" href="#tracking" title="Permalink to this headline"></a></h2>
+<div class="section" id="orb">
+<h3>2.1 ORB优化<a class="headerlink" href="#orb" title="Permalink to this headline"></a></h3>
+<ol class="arabic">
+<li><p class="first">避免一个区域内提取的特征点过于冗余或无特征点的情况</p>
+<p>每一层金字塔提取的个数，弱纹理提取不到特征点的问题阈值的降低，四叉树对提取的特征点进行剪裁</p>
+</li>
+<li><p class="first">提高匹配的正确性</p>
+<p>图像金字塔与特征点尺度对应关系，即金字塔层数越高，距离相机的距离越近
+[可以想象]。</p>
+<p>旋转主方向(整张图像的平均旋量)与匹配点之间的旋转量差异大的时候认为误匹配</p>
+<p>特征点匹配时，不仅仅取得分最高的，当最优与次优的匹配点特征点距离相差不大的时候，认为误匹配</p>
+<p>在有先验的情况下，根据外参，只在投影点附近区域寻找，且到相机的距离满足金字塔层数。同样，根据基础矩阵可以得到第二章图像上的对应极线，计算点到极限的距离。</p>
+</li>
+<li><p class="first">加速特征点的匹配</p>
+<p>只匹配拥有相同BoW聚类node的特征点</p>
+</li>
+</ol>
+</div>
+<div class="section" id="initial-pose-estimation-from-previous-frame">
+<h3>2.2 Initial Pose Estimation from Previous Frame<a class="headerlink" href="#initial-pose-estimation-from-previous-frame" title="Permalink to this headline"></a></h3>
+<p>constant velocity motion model，motion-only BA</p>
+</div>
+<div class="section" id="initial-pose-estimation-via-global-relocalization">
+<h3>2.3 Initial Pose Estimation via Global Relocalization<a class="headerlink" href="#initial-pose-estimation-via-global-relocalization" title="Permalink to this headline"></a></h3>
+<p>将当前帧变为bag-of-words，重定位</p>
+</div>
+<div class="section" id="track-local-map">
+<h3>2.4 Track Local Map<a class="headerlink" href="#track-local-map" title="Permalink to this headline"></a></h3>
+<p>局部地图的构建</p>
+<ul class="simple">
+<li>与当前帧有共视地图点<span class="math notranslate nohighlight">\(\kappa_1\)</span>，最多共视地图点的帧为<span class="math notranslate nohighlight">\(\kappa_{ref}\)</span></li>
+<li>在 covisibility graph与<span class="math notranslate nohighlight">\(\kappa_1\)</span>相邻的关键帧</li>
+</ul>
+<p>在当前帧寻找地图点的对应点，一些筛选条件:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>[在当前帧图像范围内] Compute the map point projection x in the
+current frame. Discard if it lays out of the image bounds.</li>
+</ol>
+<ol class="arabic simple" start="2">
+<li>Compute the angle between the current viewing ray v and the map
+point mean viewing direction n.&nbsp;Discard if v · n &lt; cos(60 ◦ ).</li>
+<li>Compute the distance d from map point to camera center. Discard if
+it is out of the scale invariance region of the map point
+<span class="math notranslate nohighlight">\(d \in [d_{min} , d_{max} ]\)</span>.</li>
+<li>Compute the scale in the frame by the ratio d/d min .</li>
+<li>Compare the representative descriptor D of the map point with the
+still unmatched ORB features in the frame, at the predicted scale,
+and near x, and associate the map point with the best match.</li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="new-keyframe-decision">
+<h3>2.5 New Keyframe Decision<a class="headerlink" href="#new-keyframe-decision" title="Permalink to this headline"></a></h3>
+<blockquote>
+<div><ol class="arabic simple">
+<li>More than 20 frames must have passed from the last global
+relocalization.</li>
+<li>Local mapping is idle, or more than 20 frames have passed from
+last keyframe insertion.</li>
+<li>Current frame tracks at least 50 points.</li>
+<li>Current frame tracks less than 90% points than <span class="math notranslate nohighlight">\(K_{ref}\)</span></li>
+</ol>
+</div></blockquote>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="local-mapping">
+<h2>3. Local Mapping<a class="headerlink" href="#local-mapping" title="Permalink to this headline"></a></h2>
+<div class="section" id="keyframe-insertion">
+<h3>3.1 KeyFrame Insertion<a class="headerlink" href="#keyframe-insertion" title="Permalink to this headline"></a></h3>
+<p>更新 covisibility graph，计算词袋</p>
+</div>
+<div class="section" id="recent-map-points-culling">
+<h3>3.2 Recent Map Points Culling<a class="headerlink" href="#recent-map-points-culling" title="Permalink to this headline"></a></h3>
+<ol class="arabic simple">
+<li>The tracking must find the point in more than the 25% of the frames
+in which it is predicted to be visible.</li>
+<li>If more than one keyframe has passed from map point creation, it must
+be observed from at least three keyframes.</li>
+</ol>
+</div>
+<div class="section" id="new-map-point-creation">
+<h3>3.3 New Map Point Creation<a class="headerlink" href="#new-map-point-creation" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="local-bundle-adjustment">
+<h3>3.4 Local Bundle Adjustment<a class="headerlink" href="#local-bundle-adjustment" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="local-keyframe-culling">
+<h3>3.5 Local Keyframe Culling<a class="headerlink" href="#local-keyframe-culling" title="Permalink to this headline"></a></h3>
+<p>如果关键帧中的90%地图点能被其他三个关键帧看到，则剔除</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="loop-closing">
+<h2>4. Loop Closing<a class="headerlink" href="#loop-closing" title="Permalink to this headline"></a></h2>
+<p>每一个关键帧插入的时候回环检测</p>
+<div class="section" id="loop-candidate-detection">
+<h3>4.1 Loop Candidate Detection<a class="headerlink" href="#loop-candidate-detection" title="Permalink to this headline"></a></h3>
+<ul class="simple">
+<li>判断距离上一次闭环检测是否超过10帧</li>
+<li>先从covisibility
+graph的相邻关键帧得到最低分数s，作为阈值1[只有高于这个才有可能与关键帧匹配]，然后词袋库中选取高于s的帧作为候选关键帧</li>
+<li>候选关键帧中与当前关键帧拥有共有单词数量的80%作为阈值2</li>
+<li>在候选帧中检测具有连续性的候选帧，即，候选帧中相连的帧的分数一起算[相连帧如果不是候选回环帧，则分数为0]，得到分数最高的关键帧，75%作为阈值3</li>
+</ul>
+</div>
+<div class="section" id="compute-the-similarity-transformation">
+<h3>4.2 Compute the Similarity Transformation<a class="headerlink" href="#compute-the-similarity-transformation" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="loop-fusion">
+<h3>4.3 Loop Fusion<a class="headerlink" href="#loop-fusion" title="Permalink to this headline"></a></h3>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">回环两边对其，点云重复点合并</p>
+</div>
+</div>
+<div class="section" id="essential-graph-optimization">
+<h3>4.4 Essential Graph Optimization<a class="headerlink" href="#essential-graph-optimization" title="Permalink to this headline"></a></h3>
+<p><img alt="image0" src="../_images/25.png" /></p>
+<div class="section" id="reference">
+<h4>Reference<a class="headerlink" href="#reference" title="Permalink to this headline"></a></h4>
+<p>Multiple View Geometry in Computer Vision</p>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="DSO.html" class="btn btn-neutral float-left" title="DSO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="State_Estimation_for_Robotics.html" class="btn btn-neutral float-right" title="[Books] State Estimation for Robotics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+Cartographer
+============
+
+2022-01-21
+
+1. Scan Matching
+----------------
+
+.. math::
+
+
+   T_{\xi}P = \begin{pmatrix}\cos\xi_{\theta} & -\sin\xi_{\theta} \\ sin\xi_{\theta} & \cos\xi_{\theta} \end{pmatrix}p + \begin{pmatrix} \xi_{x} \\ \xi_{y} \end{pmatrix}
+
+地图值的更新 :math:`p_{hit},p_{miss}` 公式一致
+
+.. math::
+
+
+   &odds(p) = \frac{p}{1-p} \\
+   &M_{new}(x) = clamp(odds^{-1}(odds(M_{old}(x))*odds(p_{hit}))) \\
+   &= clamp(odds^{-1}(\frac{M_{old}}{1-M_{old}} * \frac{p_{hit}}{1-p_{hit}}))
+
+-  ceres scan matching
+
+   .. math::
+
+
+      \mathop{\arg\min}\limits_{\xi} \sum_{k=1}^{K}(1-M_{smooth}(T_{\xi}h_k))^2
+
+   :math:`M_{smooth}`
+   代表双三次插值法，用16个点近似\ :math:`\frac{\sin(x*\pi)}{x}`\ ，通常\ :math:`a=-0.5`
+
+   .. math::
+
+
+      S(x) = \left\{\begin{array}{rcl}(a+2)|x|^3+(a+3)|x|^2+1 &    & 0\le|x|\le1\\ a|x|^3 - 5a|x|^2+8a|x|-4a &    &1\le|x|\le2\\ 0 &    &|x|\ge2\end{array}\right.
+
+   最近邻插值： 最近的点
+
+   双线性插值： 左右(上下)两个点插值
+
+-  a pixel-accurate scan matching
+
+   这个可以在没有imu的时候使用
+
+2. Closing Loops
+----------------
+
+:math:`\xi_i^m`\ submap在地图中的变换，\ :math:`\xi_j^s`\ 激光雷达在地图中的变换，\ :math:`\xi_{i,j}`
+激光雷达与submap的变换。核函数是Huber Loss。
+
+.. math::
+
+
+   \arg\min\frac{1}{2}\sum_{i,j}(\rho(E^2(\xi_i^m,\xi_j^s;\Sigma_{ij},\xi_{i,j})))
+
+直观理解，下式相等，m: submap, s:scan, w:world
+
+.. math::
+
+
+   T_{ms} = T_{mw}*T_{ws}
+
+3. Branch-and-Bound Scan Matching
+---------------------------------
+
+优化函数，也是栅格地图的值与观测值保持一致，\ :math:`\omega`\ 是滑动搜索框。
+
+搜索的角度步长使得最远的激光点的变化程度小于一个栅格的距离。
+
+.. TODO::
+
+   这边栅格的值改为了最近邻的点，而不是三次插值。
+
+.. math::
+
+
+   &\xi^*=\arg\max\limits_{\xi\in\omega}\sum_{k=1}^kM_{nearest}(T_{\xi}h_k)\\
+   &d_{max} = \max|h_k|\\
+   &\cos(\theta) = \frac{d^2+d^2-r^2}{2d^2}\\
+   &\sigma_{\theta} = \arccos(1-\frac{r^2}{2d_{max}^2})
+
+每次搜索范围，x,y变换7m，即步长为\ :math:`\frac{30}{r}`\ ，角度变化30°，选项步长为\ :math:`\frac{30}{\sigma_{\theta}}`\ 。
+
+3.1 Node Selection
+~~~~~~~~~~~~~~~~~~
+
+总是从set里面选择分数最高的一个，即DFS。
+
+3.2 Branching Rule
+~~~~~~~~~~~~~~~~~~
+
+一个node由4个数组成的tuple构成，\ :math:`(c_x,c_y,c_{\theta},c_h)`\ ，包含\ :math:`2^{c_h}*2^{c_h}`\ 个选项，角度唯一。
+
+.. math::
+
+
+   c_x\le j_x<c_x+2^{c_h},c_y\le j_y<c_y+2^{c_h}
+
+每一层将上一层的x,y分为4个部分。
+
+3.3 Computing Upper Bounds
+--------------------------
+
+粗细分辨率的图，即地图值为\ :math:`2^h*2^h`\ 范围内的最大值，在粗分辨率地图的匹配值一定大于细分辨率的匹配值，所以得到了Upper
+Bounds。
+
+粗分辨率的score是对每个激光点分开求T，必然大于细分辨率的情况。
+
+例如，一个栅格分为四个小格子，00,01,10,11，有两个激光点，h1,h2，粗分辨率下，h1对应的T在00块，h2对应的T在11块。然而，在细分辨率00下，h2取不到最佳T(因为在11块)。所以，粗分辨率是上界。
+
+|image0|
+
+.. |image0| image:: images/1.png

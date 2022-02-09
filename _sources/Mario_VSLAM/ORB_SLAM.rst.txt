@@ -1,0 +1,184 @@
+ORB SLAM
+========
+
+2022-01-23
+
+1. 基本算法概念
+---------------
+
+1.1 关键帧图的构建
+~~~~~~~~~~~~~~~~~~
+
+covisibility graph:
+每个node都是关键帧，如果关键帧之间的共视地图点多余15，则对应两个node之间连接一个edge
+
+essential graph:
+首先是每个node对应的最大边(node都是相连的)，其次如果有共视超过100的也加入
+
+1.3 初始化定位
+~~~~~~~~~~~~~~
+
+对于Fundamental Matrix， homography
+Matrix，计算变换误差，计算比例，\ :math:`R_H`\ 大于0.45就选择为单应模型
+
+.. math::
+
+
+   R_H = \frac{S_H}{S_H+S_F}
+
+1.4 BA
+~~~~~~
+
+空间的三维点可以投影到相机平面，但存在误差，BA就是最小化重投影误差，优化量为三维点的坐标位置与转换。
+
+1.5 剔除规则
+~~~~~~~~~~~~
+
+地图点与关键帧创建的要求很低，但后面会接上一个严格的剔除规则
+
+1.6 卡方分布
+~~~~~~~~~~~~
+
+两个独立的服从标准正太分布随机变量的平方和，它服从\ **2**\ 个自由度的Chi-squared
+distribution卡方分布。
+
+--------------
+
+2. Tracking
+-----------
+
+2.1 ORB优化
+~~~~~~~~~~~
+
+1. 避免一个区域内提取的特征点过于冗余或无特征点的情况
+
+   每一层金字塔提取的个数，弱纹理提取不到特征点的问题阈值的降低，四叉树对提取的特征点进行剪裁
+
+2. 提高匹配的正确性
+
+   图像金字塔与特征点尺度对应关系，即金字塔层数越高，距离相机的距离越近
+   [可以想象]。
+
+   旋转主方向(整张图像的平均旋量)与匹配点之间的旋转量差异大的时候认为误匹配
+
+   特征点匹配时，不仅仅取得分最高的，当最优与次优的匹配点特征点距离相差不大的时候，认为误匹配
+
+   在有先验的情况下，根据外参，只在投影点附近区域寻找，且到相机的距离满足金字塔层数。同样，根据基础矩阵可以得到第二章图像上的对应极线，计算点到极限的距离。
+
+3. 加速特征点的匹配
+
+   只匹配拥有相同BoW聚类node的特征点
+
+2.2 Initial Pose Estimation from Previous Frame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+constant velocity motion model，motion-only BA
+
+2.3 Initial Pose Estimation via Global Relocalization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+将当前帧变为bag-of-words，重定位
+
+2.4 Track Local Map
+~~~~~~~~~~~~~~~~~~~
+
+局部地图的构建
+
+-  与当前帧有共视地图点\ :math:`\kappa_1`\ ，最多共视地图点的帧为\ :math:`\kappa_{ref}`
+-  在 covisibility graph与\ :math:`\kappa_1`\ 相邻的关键帧
+
+在当前帧寻找地图点的对应点，一些筛选条件:
+
+   1. [在当前帧图像范围内] Compute the map point projection x in the
+      current frame. Discard if it lays out of the image bounds.
+
+   2) Compute the angle between the current viewing ray v and the map
+      point mean viewing direction n. Discard if v · n < cos(60 ◦ ).
+
+   3) Compute the distance d from map point to camera center. Discard if
+      it is out of the scale invariance region of the map point
+      :math:`d \in [d_{min} , d_{max} ]`.
+
+   4) Compute the scale in the frame by the ratio d/d min .
+   
+   5) Compare the representative descriptor D of the map point with the
+      still unmatched ORB features in the frame, at the predicted scale,
+      and near x, and associate the map point with the best match.
+
+2.5 New Keyframe Decision
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   1) More than 20 frames must have passed from the last global
+      relocalization.
+   2) Local mapping is idle, or more than 20 frames have passed from
+      last keyframe insertion.
+   3) Current frame tracks at least 50 points.
+   4) Current frame tracks less than 90% points than :math:`K_{ref}`
+
+--------------
+
+3. Local Mapping
+----------------
+
+3.1 KeyFrame Insertion
+~~~~~~~~~~~~~~~~~~~~~~
+
+更新 covisibility graph，计算词袋
+
+3.2 Recent Map Points Culling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1) The tracking must find the point in more than the 25% of the frames
+   in which it is predicted to be visible.
+2) If more than one keyframe has passed from map point creation, it must
+   be observed from at least three keyframes.
+
+3.3 New Map Point Creation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+3.4 Local Bundle Adjustment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+3.5 Local Keyframe Culling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+如果关键帧中的90%地图点能被其他三个关键帧看到，则剔除
+
+--------------
+
+4. Loop Closing
+---------------
+
+每一个关键帧插入的时候回环检测
+
+4.1 Loop Candidate Detection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  判断距离上一次闭环检测是否超过10帧
+
+-  先从covisibility
+   graph的相邻关键帧得到最低分数s，作为阈值1[只有高于这个才有可能与关键帧匹配]，然后词袋库中选取高于s的帧作为候选关键帧
+-  候选关键帧中与当前关键帧拥有共有单词数量的80%作为阈值2
+-  在候选帧中检测具有连续性的候选帧，即，候选帧中相连的帧的分数一起算[相连帧如果不是候选回环帧，则分数为0]，得到分数最高的关键帧，75%作为阈值3
+
+4.2 Compute the Similarity Transformation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+4.3 Loop Fusion
+~~~~~~~~~~~~~~~
+
+.. TODO::
+
+   回环两边对其，点云重复点合并
+
+4.4 Essential Graph Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|image0|
+
+Reference
+^^^^^^^^^
+
+Multiple View Geometry in Computer Vision
+
+.. |image0| image:: images/2.png

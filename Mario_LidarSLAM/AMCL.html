@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AMCL 算法详解 &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Cartographer" href="CARTO.html" />
+    <link rel="prev" title="VINS_MONO" href="../Mario_VSLAM/VINS_MONO.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/DSO.html">DSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">AMCL 算法详解</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">1. 理论基础</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1.1 高斯分布</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">1.2 贝叶斯公式</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#particle-filter">1. Particle Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monte-carlo-localization">3. 蒙特卡罗方法 Monte Carlo Localization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3.1 算法流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#p136">3.2 运动方程更新 [P136]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#p172-lm-for-landmark">3.3 观测方程: [P172] lm for landmark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">3.4 重要性采样(低方差采样算法) [110]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kld">3.5 KLD采样方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mcl-with-mixture-distribution-todo">3.6 MCL with mixture distribution [TODO]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reference">Reference:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">4. 工程相关</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#kdtree-todo">4.1 KDTree [TODO]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#map-priority-queue">4.2 MAP Priority Queue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">3.8 传感器模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">3.9 特征值计算</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>AMCL 算法详解</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_LidarSLAM/AMCL.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="amcl">
+<h1>AMCL 算法详解<a class="headerlink" href="#amcl" title="Permalink to this headline"></a></h1>
+<p>Mario 2022-01-15</p>
+<div class="section" id="id1">
+<h2>1. 理论基础<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<p>AMCL: Adaptive (Augmented) Monte Carlo Localization</p>
+<div class="section" id="id2">
+<h3>1.1 高斯分布<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<p>特征值分解，根据协方差产生随机位姿</p>
+<p>pf_pdf_gaussian_sample</p>
+<div class="math notranslate nohighlight">
+\[f(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\mu)^2}{2\sigma^2}}\]</div>
+</div>
+<div class="section" id="id3">
+<h3>1.2 贝叶斯公式<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;P(B) = P(z_k) \\
+&amp;prior = P(A) = P(x_k|z_{1:k-1}) \\
+&amp;likelihood = P(B|A) = P(z_k|x_k, z_{1:k-1}) = P(z_k|x_k)\\
+&amp;posterior = P(x_k|z_{1:k}) =\frac{P(z_k|x_k)P(x_k|z_{1:k-1})}{P(z_k|z_{1:k-1})}\end{split}\]</div>
+</div>
+</div>
+<div class="section" id="particle-filter">
+<h2>1. Particle Filter<a class="headerlink" href="#particle-filter" title="Permalink to this headline"></a></h2>
+<p>Partical Filter is a Bayesian Filter.</p>
+<p>Line 4: 根据控制量采样出m个state x</p>
+<p>Line 5: Importance Factor</p>
+<p>Line 8~11: Re-sampling, 重要性采样 [Importance Re-sampling]</p>
+<p>​ - target distribution, proposal distribution</p>
+<p><a class="reference internal" href="../_images/17.png"><img alt="image1" src="../_images/17.png" style="width: 500px;" /></a></p>
+</div>
+<div class="section" id="monte-carlo-localization">
+<h2>3. 蒙特卡罗方法 Monte Carlo Localization<a class="headerlink" href="#monte-carlo-localization" title="Permalink to this headline"></a></h2>
+<div class="section" id="id4">
+<h3>3.1 算法流程<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h3>
+<p>注意： 这边第6行是将每个粒子的位姿与概率做更新，并没有增加粒子数量</p>
+<p><a class="reference internal" href="../_images/18.png"><img alt="image2" src="../_images/18.png" style="width: 500px;" /></a></p>
+<p>存在的问题：</p>
+<ol class="arabic simple">
+<li>对于stochastic算法，总是有几率删除掉了所有正确的粒子。</li>
+<li>the robot might get kidnapped with a small probability,</li>
+</ol>
+<p>改进：
+可以<strong>随机</strong>加入particle来解决。随机particle的加入根据定位的精确程度。</p>
+<p>采用了short_term, long_term计算定位概率，用两个decay rates，其中
+<span class="math notranslate nohighlight">\(0 &lt; \sigma_{slow} &lt;&lt; \sigma_{fast}\)</span>,</p>
+<p>难点在13行，如果现在粒子的精确度大于之前的精度，即<span class="math notranslate nohighlight">\(w_{fast}&gt;w_{slow}\)</span>,
+则不额外加入粒子。如果现在粒子的精度弱于之前的精度，即<span class="math notranslate nohighlight">\(w_{fast}&lt; w_{slow},1-\frac{w_{fast}}{w_{slow}} &gt; 0\)</span>，所以加入粒子，定位越不准确，随机粒子越多。</p>
+<p><a class="reference internal" href="../_images/19.png"><img alt="image3" src="../_images/19.png" style="width: 500px;" /></a>
+​</p>
+</div>
+<div class="section" id="p136">
+<h3>3.2 运动方程更新 [P136]<a class="headerlink" href="#p136" title="Permalink to this headline"></a></h3>
+<p><a class="reference internal" href="../_images/20.png"><img alt="image0" src="../_images/20.png" style="width: 500px;" /></a></p>
+<p>由于里程计的有精度问题，所以在实现的时候加上了高斯噪声来模拟里程计的精度误差</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">这边高斯误差的方差有点讲究，暂时还没看懂</p>
+</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix} x_r \\ y_r \\ \theta_r\end{bmatrix}_k = \begin{bmatrix} x_r \\ y_r \\ \theta_r\end{bmatrix}_{k-1}+\begin{bmatrix} cos(\theta_{r, k-1}) &amp; 0 \\ sin(\theta_{r, k-1}) &amp; 0 \\ 0 &amp; 1\end{bmatrix}\begin{bmatrix} u_{fwd} \\ u_{ang} \end{bmatrix}\end{split}\]</div>
+<p><a class="reference internal" href="../_images/21.png"><img alt="image4" src="../_images/21.png" style="width: 500px;" /></a></p>
+</div>
+<div class="section" id="p172-lm-for-landmark">
+<h3>3.3 观测方程: [P172] lm for landmark<a class="headerlink" href="#p172-lm-for-landmark" title="Permalink to this headline"></a></h3>
+<p>这边距离的计算代码中用定点化优化，根据地图，可以直接计算出地图中每个点到<strong>最近障碍物</strong>点的距离，然后查表即可</p>
+<p>权重是一个高斯分布加上一个random值，高斯分布平均值为0，方差为<span class="math notranslate nohighlight">\(\sigma\)</span>，当激光点距离障碍物点远的时候，高斯值比较小，趋近于0，当激光点距离障碍物近的时候，高斯值趋近于1</p>
+<p>所以，越准确的粒子，其q值越大</p>
+<p>代码中每个激光点的q最后都三次方再加到总weight里</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix} z_{dist} \\ z_{ang} \end{bmatrix}_k = \begin{bmatrix} \sqrt{(x_{r,k}-x_{lm})^2 + (y_{r,k} - y_{lm})^2} \\ arctan(\frac{y_{r,k} - y_{lm}}{x_{r,k}-x_{lm}})\end{bmatrix}\end{split}\]</div>
+<p><a class="reference internal" href="../_images/22.png"><img alt="image5" src="../_images/22.png" style="width: 500px;" /></a></p>
+</div>
+<div class="section" id="id5">
+<h3>3.4 重要性采样(低方差采样算法) [110]<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h3>
+<p>根据每个粒子的权重累加，然后生成一个随机数，看这个随机数落在累加数组c的第几个区间内，根据此取i。由于rand是平均采样，所以，当权重大的时候，权重对应的区间宽，计粒子更容易被采样到</p>
+<div class="math notranslate nohighlight">
+\[c_k = \sum_{0&lt;i&lt;k}{w_i}\]</div>
+<p><a class="reference internal" href="../_images/23.png"><img alt="image6" src="../_images/23.png" style="width: 500px;" /></a></p>
+</div>
+<div class="section" id="kld">
+<h3>3.5 KLD采样方法<a class="headerlink" href="#kld" title="Permalink to this headline"></a></h3>
+<p>Kullback-Leibler divergence</p>
+<p>自适应地计算粒子数，用卡方分布去近似计算估计概率分布和真实概率分布之间的距离</p>
+<p><span class="math notranslate nohighlight">\(M_x\)</span>与k成正比，即粒子所占用Histogram的bin越多，说明定位越不稳定，则增加粒子数量</p>
+<p>bin的数量用KDTree的叶子数量来表示
+set_b-&gt;kdtree-&gt;leaf_count，大致意思是叶节点越多，粒子数量越多</p>
+<div class="math notranslate nohighlight">
+\[1-\sigma=0.99, error=0.05, histogram: 50*50*15\]</div>
+<p><a class="reference internal" href="../_images/24.png"><img alt="image7" src="../_images/24.png" style="width: 500px;" /></a></p>
+</div>
+<div class="section" id="mcl-with-mixture-distribution-todo">
+<h3>3.6 MCL with mixture distribution [TODO]<a class="headerlink" href="#mcl-with-mixture-distribution-todo" title="Permalink to this headline"></a></h3>
+<p>proposal distribution: <span class="math notranslate nohighlight">\(P(x_t|u_t, x_{t-1}bel(x_{t-1}))\)</span>，
+即根据运动模型的x的分布。</p>
+<blockquote>
+<div><p>the particle filter uses the motion model as proposal distribution,
+but it seeks to approximate a product of this distribution and the
+perceptual likelihood. The larger the difference between the proposal
+and the target distribution, the more samples are needed.</p>
+<p>Particles are generated according to the measurement model</p>
+</div></blockquote>
+</div>
+<div class="section" id="reference">
+<h3>Reference:<a class="headerlink" href="#reference" title="Permalink to this headline"></a></h3>
+<p>Probabilistic Robotics</p>
+<p>Particle Filter: A Hands-On Tutorial</p>
+</div>
+</div>
+<div class="section" id="id6">
+<h2>4. 工程相关<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h2>
+<div class="section" id="kdtree-todo">
+<h3>4.1 KDTree [TODO]<a class="headerlink" href="#kdtree-todo" title="Permalink to this headline"></a></h3>
+<p>kdtree主要用于多维空间关键数据的搜索，也就是从二叉树变换到了k维空间，详见c++/KDTree</p>
+<p>粒子过多数组不好存储，即用kdtree，每个节点对应一个粒子，key保留的是位姿，value保存的是weight</p>
+<p>每个节点pivot的选取(按第几维度的大小排序)，是查看它与子节点[x,y,z]最大差异的维度为pivot</p>
+</div>
+<div class="section" id="map-priority-queue">
+<h3>4.2 MAP Priority Queue<a class="headerlink" href="#map-priority-queue" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id7">
+<h3>3.8 传感器模型<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id8">
+<h3>3.9 特征值计算<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../Mario_VSLAM/VINS_MONO.html" class="btn btn-neutral float-left" title="VINS_MONO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="CARTO.html" class="btn btn-neutral float-right" title="Cartographer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

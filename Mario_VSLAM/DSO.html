@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSO &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ORB SLAM" href="ORB_SLAM.html" />
+    <link rel="prev" title="[深蓝学院] 激光SLAM理论与实践" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DSO</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">1. 基础知识</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1.2 点的稠密度</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">2. 初始化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">2.1 相机几何畸变与光度模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">2.3 光度误差模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">2.4 初始化相关理论</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">2.5 初始化代码讲解</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">3. 跟踪，建图</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">3.1 运动假设</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">3.2 激活点跟踪</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">3.3 关键帧筛选</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">3.4 候选点跟踪</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">3.5 候选点激活</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id14">4. 划窗优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">4.1 滑窗优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">4.2 零空间的处理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">4.3 DSO边缘化策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fej">4.4 FEJ策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dsosolver">4.5 DSO中的solver</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_LidarSLAM/LOAM.html">LOAM</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>DSO</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_VSLAM/DSO.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="dso">
+<h1>DSO<a class="headerlink" href="#dso" title="Permalink to this headline"></a></h1>
+<p>2022-01-25</p>
+<div class="section" id="id1">
+<h2>1. 基础知识<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<p>光度误差</p>
+<div class="section" id="id2">
+<h3>1.2 点的稠密度<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<p>Sparse，Semi-Dense，Dense</p>
+<p>考虑区域连通性，深度的连通性，光流场的平滑性，深度平滑性</p>
+<p>Hessian矩阵point-point之间是否有关联</p>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>2. 初始化<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h2>
+<div class="section" id="id4">
+<h3>2.1 相机几何畸变与光度模型<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id5">
+<h3>2.3 光度误差模型<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h3>
+<p>逆深度</p>
+<p>pattern，点周围的8个点计算光度</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">求导</p>
+</div>
+</div>
+<div class="section" id="id6">
+<h3>2.4 初始化相关理论<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h3>
+<p>像素点提取</p>
+</div>
+<div class="section" id="id7">
+<h3>2.5 初始化代码讲解<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>3. 跟踪，建图<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h2>
+<div class="section" id="id9">
+<h3>3.1 运动假设<a class="headerlink" href="#id9" title="Permalink to this headline"></a></h3>
+<p>匀速、半速、倍速、零速、以及从参考帧静止</p>
+</div>
+<div class="section" id="id10">
+<h3>3.2 激活点跟踪<a class="headerlink" href="#id10" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id11">
+<h3>3.3 关键帧筛选<a class="headerlink" href="#id11" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id12">
+<h3>3.4 候选点跟踪<a class="headerlink" href="#id12" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="id13">
+<h3>3.5 候选点激活<a class="headerlink" href="#id13" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+<div class="section" id="id14">
+<h2>4. 划窗优化<a class="headerlink" href="#id14" title="Permalink to this headline"></a></h2>
+<div class="section" id="id15">
+<h3>4.1 滑窗优化<a class="headerlink" href="#id15" title="Permalink to this headline"></a></h3>
+<p>优化变量: 相对的光度参数，相对位姿，主帧上点的逆深度，相机内参</p>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">光度误差求导</p>
+</div>
+</div>
+<div class="section" id="id16">
+<h3>4.2 零空间的处理<a class="headerlink" href="#id16" title="Permalink to this headline"></a></h3>
+<p>R,t,s都是不可观的，没有绝对的位姿</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;Hx=b\\
+&amp;Hx_{ns}=0\\
+&amp;H(x+x_{ns})=b\end{split}\]</div>
+<p>求零空间基，将全局的零空间上的扰动变换到局部:</p>
+<p>伴随: <span class="math notranslate nohighlight">\(Exp(Ad_T \xi)=TExp(\xi)T^{-1}\)</span></p>
+<p>左乘与右乘: <span class="math notranslate nohighlight">\(T_{wc}Exp(\delta \xi_c)=Exp(\delta \xi_w)T_{wc}\)</span></p>
+<p>则:左边是局部增量，右边是全局增量</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;Exp(\delta \xi_c)=T_{cw}Exp(\delta \xi_w)T_{wc} \\
+&amp;\delta \xi_c=Ad_{T_{cw}}\delta \xi_w\end{split}\]</div>
+<p><img alt="image0" src="../_images/221.png" /></p>
+<p>处理方法</p>
+<ul class="simple">
+<li>Gauge Fixation: 固定第一帧，即对应残差雅克比为0或者权重趋于无穷大</li>
+<li>Gauge Prior: 给状态设置先验[根据滑动去掉的帧给]，增加相应的惩罚项</li>
+<li>Free Prior: 自由演变，最后用第一帧拉回来</li>
+</ul>
+<div class="admonition-todo admonition" id="index-2">
+<p class="first admonition-title">Todo</p>
+<p class="last">伪逆，增加阻尼(LM)</p>
+</div>
+<p>DOS的处理方法</p>
+<ul class="simple">
+<li><span class="math notranslate nohighlight">\(\Delta x\)</span>投影到减去零空间的投影值，即为真实的<span class="math notranslate nohighlight">\(\Delta x\)</span>。[TODO]:
+零空间的分量 <span class="math notranslate nohighlight">\(P_Mv=N(N^TN)^{-1}N^Tv\)</span></li>
+</ul>
+</div>
+<div class="section" id="id17">
+<h3>4.3 DSO边缘化策略<a class="headerlink" href="#id17" title="Permalink to this headline"></a></h3>
+<p>先帧的位姿后地图点</p>
+</div>
+<div class="section" id="fej">
+<h3>4.4 FEJ策略<a class="headerlink" href="#fej" title="Permalink to this headline"></a></h3>
+<p>边缘化的先验+当前的滑动窗口 低估了状态的不确定性</p>
+<ul class="simple">
+<li>位姿/光度参数使用固定化线性化点</li>
+</ul>
+<div class="admonition-todo admonition" id="index-3">
+<p class="first admonition-title">Todo</p>
+<p class="last">残差更新</p>
+</div>
+</div>
+<div class="section" id="dsosolver">
+<h3>4.5 DSO中的solver<a class="headerlink" href="#dsosolver" title="Permalink to this headline"></a></h3>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../Mario_LidarSLAM/TUTORIAL_LidarSLam.html" class="btn btn-neutral float-left" title="[深蓝学院] 激光SLAM理论与实践" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ORB_SLAM.html" class="btn btn-neutral float-right" title="ORB SLAM" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

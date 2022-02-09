@@ -1,0 +1,32 @@
+.. Mario documentation master file, created by
+   sphinx-quickstart on Tue Feb  8 22:02:26 2022.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to Mario's documentation!
+=================================
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+   
+   Mario_VSLAM/ORB_SLAM
+   Mario_VSLAM/DSO
+   Mario_VSLAM/VINS_MONO
+
+   Mario_LidarSLAM/CARTO
+   Mario_LidarSLAM/AMCL
+   Mario_LidarSLAM/LOAM
+   Mario_LidarSLAM/LEGO_LOAM
+   Mario_LidarSLAM/LIO_SAM
+
+   Mario_VSLAM/State_Estimation_for_Robotics
+   Mario_VSLAM/TUTORIAL_Visual_SLAM
+   Mario_LidarSLAM/TUTORIAL_LidarSLam
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

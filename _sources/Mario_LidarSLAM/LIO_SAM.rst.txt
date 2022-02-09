@@ -1,0 +1,56 @@
+LIO-SAM
+=======
+
+2022-01-23
+
+1. IMU Preintegration Factor
+----------------------------
+
+   IMU与积分推导[TODO]
+
+   On-Manifold Preintegration for Real-Time Visual-Inertial Odometry
+
+2. Lidar Odometry Factor
+------------------------
+
+由于图优化的计算量，引入了Keyframe的概念: 当车辆运动超过1m或者10°
+
+2.1 Sub-Keyframes for Voxel Map
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+scan-to-map中map的构建:
+选取最近的keyframes组成map，降采样，坐标是世界坐标(不选取\ :math:`x_i`\ 坐标考虑的是计算量)
+
+2.2 Scan Matching
+~~~~~~~~~~~~~~~~~
+
+同loam最小化距离误差
+
+   Paper: A Method for Registration of 3D Shapes
+
+   Paper: Generalized-ICP
+
+3. GPS Factor
+-------------
+
+   GPS的坐标变换
+
+   A Generalized Extended Kalman Filter Implementation for The Robot
+   Operating System
+
+效率: 只有当估计位姿的方差大于GPS的方差的时候，才加入GPS Factor，
+
+4. Loop Closure Factor
+----------------------
+
+   回环检测Paper:
+
+   Scan Context: Egocentric Spatial Descriptor for Place Recognition
+   within 3D Point Cloud Map
+
+   Local Descriptor for Robust Place Recognition using Lidar Intensity
+
+对于回环候选帧选取25个关键帧组成地图，scan
+match得到回环帧与当前帧的变换。
+
+GPS的高度误差比较大，回环可以有效解决这些问题。

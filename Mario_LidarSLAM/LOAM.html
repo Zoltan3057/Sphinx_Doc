@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOAM &mdash; Mario  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"jax": ["input/TeX", "output/HTML-CSS"], "displayAlign": "center"})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="LIO-SAM" href="LIO_SAM.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mario
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html">[深蓝学院] 视觉SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/TUTORIAL_Visual_SLAM.html#id44">[深蓝学院] 视觉SLAM作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_LidarSLam.html">[深蓝学院] 激光SLAM理论与实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TUTORIAL_LidarSLam.html#id13">[深蓝学院] 激光SLAM理论与实践作业</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/DSO.html">DSO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/ORB_SLAM.html">ORB SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/State_Estimation_for_Robotics.html">[Books] State Estimation for Robotics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Mario_VSLAM/VINS_MONO.html">VINS_MONO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMCL.html">AMCL 算法详解</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CARTO.html">Cartographer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LEGO_LOAM.html">Lego Loam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LIO_SAM.html">LIO-SAM</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LOAM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lidar-odometry">1. Lidar Odometry</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#feature-point-extraction">1.1 Feature Point Extraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#finding-feature-point-correspondence">1.2 Finding Feature Point Correspondence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#motion-estimation">1.3 Motion Estimation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lidar-mapping">2. Lidar Mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">3. 优缺点</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mario</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>LOAM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Mario_LidarSLAM/LOAM.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="loam">
+<h1>LOAM<a class="headerlink" href="#loam" title="Permalink to this headline"></a></h1>
+<p>2021-01-22</p>
+<div class="section" id="lidar-odometry">
+<h2>1. Lidar Odometry<a class="headerlink" href="#lidar-odometry" title="Permalink to this headline"></a></h2>
+<p>激光里程计模块</p>
+<div class="section" id="feature-point-extraction">
+<h3>1.1 Feature Point Extraction<a class="headerlink" href="#feature-point-extraction" title="Permalink to this headline"></a></h3>
+<p>使用特征点来代替完整的数据帧。</p>
+<p>曲率计算公式，代码中也就是点x,y,z的值与相邻10个点值的<strong>向量和</strong>。</p>
+<div class="math notranslate nohighlight">
+\[c=\frac{1}{|S|*|X_{(k,i)}}|\sum_{j\in S,j\ne i}(X_{k,i}-X_{k,j})|\]</div>
+<p>一个scan分为4个部分，每个部分2个角点与4个平面点。曲率值大的是角点，小的是平面点。</p>
+<p>去除一些不稳定的点，下图(a)中的B平面的很多点就没有被检测到，(b)中的两个点换一个角度就是planar
+points。</p>
+<p><img alt="image0" src="../_images/2.png" /></p>
+</div>
+<div class="section" id="finding-feature-point-correspondence">
+<h3>1.2 Finding Feature Point Correspondence<a class="headerlink" href="#finding-feature-point-correspondence" title="Permalink to this headline"></a></h3>
+<p>角点与平面点存储在了一个kd-tree中。</p>
+<p>下图中，j为距离角点i并且同一个scan上最近的点，l为上下两个scan中距离i最近的点，直线lj即为对应的边(edge)。</p>
+<p>同理，选出j,m,l作为平面点对应的平面。后面加一个验证的操作，即(a)确保lj为角点，(b)
+j,m,l为平面点。</p>
+<blockquote>
+<div><p>Here, we particularly require that j and l are from different scans
+considering that a single scan cannot contain more than one points
+from the same edge line.</p>
+<p>解释：
+当是一个墙角的时候，边缘都是角点，垂直的墙角的角点必然在两条scans上。而对于水平的墙角，激光不大能检测的出来。[TODO]</p>
+</div></blockquote>
+<p><img alt="image1" src="../_images/3.png" /></p>
+<p>于是，帧与帧之间的转换，就是最小化角点i到对应直线(j,l)的距离，平面点i到对应平面(m,j,l)的距离</p>
+<p>角点i到对应直线(j,l)的距离: 面积除以底，</p>
+<div class="math notranslate nohighlight">
+\[d_{\varepsilon}=\frac{\vec{ij} * \vec{il}}{\vec{jl}}\]</div>
+<p>平面点i到对应平面(m,j,l)的距离: 体积除以底面积</p>
+<div class="math notranslate nohighlight">
+\[d_H=\frac{|\vec{ij}(\vec{jl}*\vec{jm})|}{|\vec{jl}*\vec{jm}|}\]</div>
+</div>
+<div class="section" id="motion-estimation">
+<h3>1.3 Motion Estimation<a class="headerlink" href="#motion-estimation" title="Permalink to this headline"></a></h3>
+<p>构建误差函数，最小化上面两个距离，LM优化。即，前后两帧的坐标变换与距离d相关。</p>
+<div class="math notranslate nohighlight">
+\[f(T_{k+1}^{L})=d\]</div>
+</div>
+</div>
+<div class="section" id="lidar-mapping">
+<h2>2. Lidar Mapping<a class="headerlink" href="#lidar-mapping" title="Permalink to this headline"></a></h2>
+<p>激光建图模块</p>
+<p>特征点数量为前端的10倍。</p>
+<p>特征点选择方法跟上面不同，前端可以知道每个点属于哪一个scan，而这边都是点云。这边在一个<span class="math notranslate nohighlight">\(10^3cm^3\)</span>的cube里面寻找对应线与面，采用了计算特征值与特征向量的方法。得到特征点对应的边缘线与平面。</p>
+<p>即，1个区域里面所有的角点构成了一条线，计算线的协方差矩阵，特征值分解，最大特征值对应的特征向量，就是这个直线的方向向量。</p>
+<p>同理，1个区域里面所有的平面点构成了一个平面，计算平面的协方差矩阵，特征值分解，最小特征值对应的特征向量，就是平面的法向量。</p>
+<p>同上，列出优化error，LM最小化。</p>
+</div>
+<div class="section" id="id1">
+<h2>3. 优缺点<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<p>没有回环检测</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="LIO_SAM.html" class="btn btn-neutral float-left" title="LIO-SAM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Mario.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
